@@ -317,15 +317,18 @@ export default class Facet extends Component {
                     </View>
                );
           } else if (multiSelect) {
+               //console.log("Showing Multi-Select facet");
+               //console.log(facets);
                return (
                     <View style={{ flex: 1 }}>
                          {this.searchBar()}
                          <ScrollView>
                               <Box safeAreaX={5}>
                                    <Checkbox.Group name={category} value={this.state.values} accessibilityLabel={getTermFromDictionary(this.state.language, 'filter_by')} onChange={(values) => this.updateLocalValues(category, values)}>
-                                        {_.orderBy(facets, ['isApplied', 'display'], ['desc', 'asc']).map((item, index, array) => (
-                                             <Facet_Checkbox key={index} data={item} language={this.state.language} />
-                                        ))}
+                                        {facets.map((item, index) => {
+                                             return <Facet_Checkbox key={index} data={item} language={this.state.language} />;
+                                        })}
+
                                    </Checkbox.Group>
                               </Box>
                          </ScrollView>
