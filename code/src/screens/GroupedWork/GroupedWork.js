@@ -257,11 +257,17 @@ const getFormats = (formats) => {
 const getBibliographicInformationLink = (groupedWorkId) => {
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
+     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
 
-     if (groupedWorkId) {
+     let showMoreInfoBtn = false;
+     if(library?.showMoreInfoBtn) {
+          showMoreInfoBtn = library.showMoreInfoBtn;
+     }
+
+     if (groupedWorkId && showMoreInfoBtn) {
           return (
           <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['colors']['secondary']['500']}>
                <ButtonText color={theme['colors']['secondary']['500-text']}>
