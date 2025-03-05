@@ -63,6 +63,9 @@ export async function getVariations(itemId, format, language, url, variation) {
           },
      });
 
+     //console.log("Response from get variations");
+     //console.log(data);
+
      return {
           id: data.id ?? itemId,
           format: data.format ?? format,
@@ -98,6 +101,9 @@ export async function getRecords(itemId, format, source, language, url) {
                language,
           },
      });
+
+     //console.log("getRecords response");
+     //console.log(data);
 
      return {
           id: data.id ?? itemId,

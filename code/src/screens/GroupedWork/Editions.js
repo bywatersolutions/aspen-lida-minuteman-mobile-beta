@@ -35,6 +35,7 @@ export const Editions = () => {
      const [confirmingHold, setConfirmingHold] = React.useState(false);
      const [selectedItem, setSelectedItem] = React.useState('');
 
+     //console.log("Showing editions for id " + id + " " + format + " " + source + " " + language);
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['records', id, source, format, language, library.baseUrl],
           queryFn: () => getRecords(id, format, source, language, library.baseUrl),
@@ -116,12 +117,20 @@ export const Editions = () => {
           return loadingSpinner();
      }
 
+     //console.log("Showing editions");
+     //console.log("-->data records");
+     //console.log(data.records);
+
      return (
           <Box safeArea={5}>
                {isFetching ? (
                     loadingSpinner()
                ) : status === 'error' ? (
                     loadError('Error', '')
+               ) : data.records.length === 0 ? (
+                    <>
+                         <Text>Edition information was not found</Text>
+                    </>
                ) : (
                     <>
                          <FlatList

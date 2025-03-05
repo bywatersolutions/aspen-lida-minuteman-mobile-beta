@@ -5,6 +5,7 @@ import { PlaceHold } from './Holds/PlaceHold';
 import { StartVDXRequest } from './Holds/VDXRequest';
 import { StartLocalIllRequest } from './Holds/LocalIllRequest';
 import { LoadOverDriveSample } from './LoadOverDriveSample';
+import { MoreInfo } from './MoreInfo';
 import { OnHoldForYou } from './OnHoldForYou';
 import { OpenSideLoad } from './OpenSideLoad';
 
@@ -142,6 +143,16 @@ export const ActionButton = (data) => {
                          cancelHoldConfirmationRef={cancelHoldConfirmationRef}
                          holdConfirmationResponse={holdConfirmationResponse}
                          setHoldConfirmationResponse={setHoldConfirmationResponse}
+                    />
+               );
+          } else if (action.type === 'more_info_link') {
+               return (
+                    <MoreInfo
+                         source={action.source}
+                         title={action.title}
+                         groupedWorkId={action.groupedWorkId}
+                         module={action.module}
+                         recordId={action.recordId}
                     />
                );
           } else if (!_.isUndefined(action.redirectUrl)) {
