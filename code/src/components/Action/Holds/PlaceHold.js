@@ -148,11 +148,9 @@ export const PlaceHold = (props) => {
                                    setResponse(ilsResponse);
 
                                    if (ilsResponse?.confirmationNeeded && ilsResponse.confirmationNeeded) {
-                                        message = ilsResponse.api.message ?? ilsResponse.message;
-                                        title = ilsResponse.api.title ?? ils.title;
                                         setHoldConfirmationResponse({
-                                             message: ilsResponse.message,
-                                             title: ilsResponse.title,
+                                             message: ilsResponse.api?.message ?? ilsResponse.message,
+                                             title: ilsResponse.api?.title ?? ilsResponse.title,
                                              confirmationNeeded: ilsResponse.confirmationNeeded ?? false,
                                              confirmationId: ilsResponse.confirmationId ?? null,
                                              recordId: record ?? null,

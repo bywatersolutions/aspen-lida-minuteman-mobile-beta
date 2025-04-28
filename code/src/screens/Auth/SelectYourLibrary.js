@@ -32,9 +32,14 @@ export const SelectYourLibrary = (payload) => {
           }
 
           if (!isCommunity) {
-               return _.filter(haystack, function (branch) {
+               haystack = _.filter(haystack, function (branch) {
                     return branch.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
                });
+               if (!_.isEmpty(query) && query !== ' ') {
+                    return _.sortBy(haystack, ['name', 'librarySystem']);
+               }else{
+                    return haystack;
+               }
           }
 
           return _.filter(haystack, function (branch) {

@@ -54,8 +54,8 @@ export const MyEvents = () => {
           }
      }, [systemMessages]);
 
-     const { status, data, error, isFetching, isPreviousData } = useQuery(['saved_events', user.id, library.baseUrl, page, filterBy], () => fetchSavedEvents(page, pageSize, filterBy, library.baseUrl), {
-          initialData: savedEvents,
+     const { status, data, error, isFetching, isPreviousData } = useQuery(['saved_events', user.id, library.baseUrl, page, filterBy], () => fetchSavedEvents(page, pageSize, filterBy, library.baseUrl, user.language), {
+          //initialData: savedEvents,
           keepPreviousData: true,
           staleTime: 1000,
           onSuccess: (data) => {

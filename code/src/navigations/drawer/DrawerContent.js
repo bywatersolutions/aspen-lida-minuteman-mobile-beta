@@ -53,12 +53,6 @@ function onAppStateChange(AppStateStatus) {
 	}
 }
 
-onlineManager.setEventListener(setOnline => {
-	return NetInfo.addEventListener(state => {
-		setOnline(!!state.isConnected)
-	})
-})
-
 const prefix = Linking.createURL('/');
 
 export const DrawerContent = () => {
@@ -177,19 +171,11 @@ export const DrawerContent = () => {
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
           notifyOnChangeProps: ['data'],
-		 refetchOnWindowFocus: 'always',
+          refetchOnWindowFocus: 'always',
           onSuccess: (data) => {
                if (accounts !== data.accounts) {
                     updateLinkedAccounts(data.accounts);
                }
-          },
-     });
-
-     useQuery(['library_cards', user, cards ?? [], library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
-          initialData: cards,
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          onSuccess: (data) => {
                if (cards !== data.cards) {
                     updateLibraryCards(data.cards);
                }
@@ -255,33 +241,6 @@ export const DrawerContent = () => {
           placeholderData: [],
           onSuccess: (data) => {
                updateReadingHistory(data);
-          },
-     });
-
-     useQuery(['saved_events', user.id, library.baseUrl, 1, 'upcoming'], () => fetchSavedEvents(1, 25, 'upcoming', library.baseUrl), {
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          placeholderData: [],
-          onSuccess: (data) => {
-               updateSavedEvents(data.events);
-          },
-     });
-
-     useQuery(['saved_events', user?.id ?? 'unknown', library.baseUrl, 1, 'all'], () => fetchSavedEvents(1, 25, 'all', library.baseUrl), {
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          placeholderData: [],
-          onSuccess: (data) => {
-               updateSavedEvents(data.events);
-          },
-     });
-
-     useQuery(['saved_events', user.id, library.baseUrl, 1, 'past'], () => fetchSavedEvents(1, 25, 'past', library.baseUrl), {
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          placeholderData: [],
-          onSuccess: (data) => {
-               updateSavedEvents(data.events);
           },
      });
 
@@ -943,7 +902,7 @@ const Events = () => {
                          <Icon as={MaterialIcons} name="chevron-right" size="7" />
                          <VStack w="100%">
                               <Text fontWeight="500">
-                                   {getTermFromDictionary(language, 'events')} <Text bold>({user.numSavedEvents ?? 0})</Text>
+                                   {getTermFromDictionary(language, 'events')}
                               </Text>
                          </VStack>
                     </HStack>

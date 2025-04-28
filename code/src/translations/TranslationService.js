@@ -249,151 +249,151 @@ export async function getTranslatedTermsForUserPreferredLanguage(language, url) 
 
      console.log('getTranslatedTermsForUserPreferredLanguage:' + translationsLibrary.lastUpdated);
 
-     const titlesOnHold = [
-          {
-               key: 'titles_on_hold_for_ils',
-               value: getTermFromDictionary(language, 'physical_materials'),
-          },
-          {
-               key: 'titles_on_hold_for_libby',
-               value: getTermFromDictionary(language, 'libby'),
-          },
-          {
-               key: 'titles_on_hold_for_cloud_library',
-               value: getTermFromDictionary(language, 'cloud_library'),
-          },
-          {
-               key: 'titles_on_hold_for_boundless',
-               value: getTermFromDictionary(language, 'boundless'),
-          },
-          {
-               key: 'titles_on_hold_for_palace_project',
-               value: getTermFromDictionary(language, 'palace_project'),
-          },
-     ];
-     const checkouts = [
-          {
-               key: 'checkouts_for_ils',
-               value: getTermFromDictionary(language, 'physical_materials'),
-          },
-          {
-               key: 'checkouts_for_libby',
-               value: getTermFromDictionary(language, 'libby'),
-          },
-          {
-               key: 'checkouts_for_hoopla',
-               value: getTermFromDictionary(language, 'hoopla'),
-          },
-          {
-               key: 'checkouts_for_cloud_library',
-               value: getTermFromDictionary(language, 'cloud_library'),
-          },
-          {
-               key: 'checkouts_for_boundless',
-               value: getTermFromDictionary(language, 'boundless'),
-          },
-          {
-               key: 'checkouts_for_palace_project',
-               value: getTermFromDictionary(language, 'palace_project'),
-          },
-     ];
-     const filterBy = [
-          {
-               key: 'filter_by_ils',
-               value: getTermFromDictionary(language, 'physical_materials'),
-          },
-          {
-               key: 'filter_by_libby',
-               value: getTermFromDictionary(language, 'libby'),
-          },
-          {
-               key: 'filter_by_hoopla',
-               value: getTermFromDictionary(language, 'hoopla'),
-          },
-          {
-               key: 'filter_by_cloud_library',
-               value: getTermFromDictionary(language, 'cloud_library'),
-          },
-          {
-               key: 'filter_by_boundless',
-               value: getTermFromDictionary(language, 'boundless'),
-          },
-          {
-               key: 'filter_by_palace_project',
-               value: getTermFromDictionary(language, 'palace_project'),
-          },
-          {
-               key: 'filter_by_all',
-               value: getTermFromDictionary(language, 'all'),
-          },
-     ];
-     const sortBy = [
-          {
-               key: 'sort_by_title',
-               value: getTermFromDictionary(language, 'title'),
-          },
-          {
-               key: 'sort_by_author',
-               value: getTermFromDictionary(language, 'author'),
-          },
-          {
-               key: 'sort_by_format',
-               value: getTermFromDictionary(language, 'format'),
-          },
-          {
-               key: 'sort_by_status',
-               value: getTermFromDictionary(language, 'status'),
-          },
-          {
-               key: 'sort_by_date_placed',
-               value: getTermFromDictionary(language, 'date_placed'),
-          },
-          {
-               key: 'sort_by_position',
-               value: getTermFromDictionary(language, 'position'),
-          },
-          {
-               key: 'sort_by_pickup_location',
-               value: getTermFromDictionary(language, 'pickup_location'),
-          },
-          {
-               key: 'sort_by_library_account',
-               value: getTermFromDictionary(language, 'library_account'),
-          },
-          {
-               key: 'sort_by_expiration',
-               value: getTermFromDictionary(language, 'expiration'),
-          },
-          {
-               key: 'sort_by_date_added',
-               value: getTermFromDictionary(language, 'date_added'),
-          },
-          {
-               key: 'sort_by_recently_added',
-               value: getTermFromDictionary(language, 'recently_added'),
-          },
-          {
-               key: 'sort_by_user_defined',
-               value: getTermFromDictionary(language, 'user_defined'),
-          },
-          {
-               key: 'sort_by_due_asc',
-               value: getTermFromDictionary(language, 'due_asc'),
-          },
-          {
-               key: 'sort_by_due_desc',
-               value: getTermFromDictionary(language, 'due_desc'),
-          },
-          {
-               key: 'sort_by_times_renewed',
-               value: getTermFromDictionary(language, 'times_renewed'),
-          },
-     ];
-
-     await getTranslatedTermWithValues(titlesOnHold, language, url);
-     await getTranslatedTermWithValues(checkouts, language, url);
-     await getTranslatedTermWithValues(filterBy, language, url);
-     await getTranslatedTermWithValues(sortBy, language, url);
+//     const titlesOnHold = [
+//          {
+//               key: 'titles_on_hold_for_ils',
+//               value: getTermFromDictionary(language, 'physical_materials'),
+//          },
+//          {
+//               key: 'titles_on_hold_for_libby',
+//               value: getTermFromDictionary(language, 'libby'),
+//          },
+//          {
+//               key: 'titles_on_hold_for_cloud_library',
+//               value: getTermFromDictionary(language, 'cloud_library'),
+//          },
+//          {
+//               key: 'titles_on_hold_for_boundless',
+//               value: getTermFromDictionary(language, 'boundless'),
+//          },
+//          {
+//               key: 'titles_on_hold_for_palace_project',
+//               value: getTermFromDictionary(language, 'palace_project'),
+//          },
+//     ];
+//     const checkouts = [
+//          {
+//               key: 'checkouts_for_ils',
+//               value: getTermFromDictionary(language, 'physical_materials'),
+//          },
+//          {
+//               key: 'checkouts_for_libby',
+//               value: getTermFromDictionary(language, 'libby'),
+//          },
+//          {
+//               key: 'checkouts_for_hoopla',
+//               value: getTermFromDictionary(language, 'hoopla'),
+//          },
+//          {
+//               key: 'checkouts_for_cloud_library',
+//               value: getTermFromDictionary(language, 'cloud_library'),
+//          },
+//          {
+//               key: 'checkouts_for_boundless',
+//               value: getTermFromDictionary(language, 'boundless'),
+//          },
+//          {
+//               key: 'checkouts_for_palace_project',
+//               value: getTermFromDictionary(language, 'palace_project'),
+//          },
+//     ];
+//     const filterBy = [
+//          {
+//               key: 'filter_by_ils',
+//               value: getTermFromDictionary(language, 'physical_materials'),
+//          },
+//          {
+//               key: 'filter_by_libby',
+//               value: getTermFromDictionary(language, 'libby'),
+//          },
+//          {
+//               key: 'filter_by_hoopla',
+//               value: getTermFromDictionary(language, 'hoopla'),
+//          },
+//          {
+//               key: 'filter_by_cloud_library',
+//               value: getTermFromDictionary(language, 'cloud_library'),
+//          },
+//          {
+//               key: 'filter_by_boundless',
+//               value: getTermFromDictionary(language, 'boundless'),
+//          },
+//          {
+//               key: 'filter_by_palace_project',
+//               value: getTermFromDictionary(language, 'palace_project'),
+//          },
+//          {
+//               key: 'filter_by_all',
+//               value: getTermFromDictionary(language, 'all'),
+//          },
+//     ];
+//     const sortBy = [
+//          {
+//               key: 'sort_by_title',
+//               value: getTermFromDictionary(language, 'title'),
+//          },
+//          {
+//               key: 'sort_by_author',
+//               value: getTermFromDictionary(language, 'author'),
+//          },
+//          {
+//               key: 'sort_by_format',
+//               value: getTermFromDictionary(language, 'format'),
+//          },
+//          {
+//               key: 'sort_by_status',
+//               value: getTermFromDictionary(language, 'status'),
+//          },
+//          {
+//               key: 'sort_by_date_placed',
+//               value: getTermFromDictionary(language, 'date_placed'),
+//          },
+//          {
+//               key: 'sort_by_position',
+//               value: getTermFromDictionary(language, 'position'),
+//          },
+//          {
+//               key: 'sort_by_pickup_location',
+//               value: getTermFromDictionary(language, 'pickup_location'),
+//          },
+//          {
+//               key: 'sort_by_library_account',
+//               value: getTermFromDictionary(language, 'library_account'),
+//          },
+//          {
+//               key: 'sort_by_expiration',
+//               value: getTermFromDictionary(language, 'expiration'),
+//          },
+//          {
+//               key: 'sort_by_date_added',
+//               value: getTermFromDictionary(language, 'date_added'),
+//          },
+//          {
+//               key: 'sort_by_recently_added',
+//               value: getTermFromDictionary(language, 'recently_added'),
+//          },
+//          {
+//               key: 'sort_by_user_defined',
+//               value: getTermFromDictionary(language, 'user_defined'),
+//          },
+//          {
+//               key: 'sort_by_due_asc',
+//               value: getTermFromDictionary(language, 'due_asc'),
+//          },
+//          {
+//               key: 'sort_by_due_desc',
+//               value: getTermFromDictionary(language, 'due_desc'),
+//          },
+//          {
+//               key: 'sort_by_times_renewed',
+//               value: getTermFromDictionary(language, 'times_renewed'),
+//          },
+//     ];
+//
+//     await getTranslatedTermWithValues(titlesOnHold, language, url);
+//     await getTranslatedTermWithValues(checkouts, language, url);
+//     await getTranslatedTermWithValues(filterBy, language, url);
+//     await getTranslatedTermWithValues(sortBy, language, url);
 
      return true;
 }

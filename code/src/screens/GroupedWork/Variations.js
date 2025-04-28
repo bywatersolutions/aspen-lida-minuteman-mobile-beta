@@ -172,6 +172,8 @@ export const Variations = (props) => {
                                                                  queryClient.invalidateQueries({ queryKey: ['holds', library.baseUrl, language] });
                                                                  await refreshProfile(library.baseUrl).then((result) => {
                                                                       updateUser(result);
+																	  queryClient.invalidateQueries({ queryKey: ['records']});
+																	  queryClient.invalidateQueries({ queryKey: ['variation']});
                                                                  });
 
                                                                  setHoldConfirmationIsOpen(false);

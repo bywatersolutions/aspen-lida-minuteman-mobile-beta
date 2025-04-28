@@ -51,13 +51,6 @@ export const MyLibraryCard = () => {
           initialData: accounts,
           onSuccess: (data) => {
                updateLinkedAccounts(data.accounts);
-          },
-          placeholderData: [],
-     });
-
-     useQuery(['library_cards', user, cards, library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
-          initialData: cards,
-          onSuccess: (data) => {
                updateLibraryCards(data.cards);
           },
           placeholderData: [],
@@ -295,8 +288,8 @@ const CreateLibraryCard = (data) => {
           barcodeStyle = 'INVALID';
      };
 
-     console.log('barcodeValue > ' + barcodeValue);
-     console.log('barcodeStyle > ' + barcodeStyle);
+     //console.log('barcodeValue > ' + barcodeValue);
+     //console.log('barcodeStyle > ' + barcodeStyle);
      if (barcodeValue === 'UNKNOWN' || _.isNull(barcodeValue) || _.isNull(barcodeStyle) || _.isEmpty(barcodeValue) || _.isEmpty(barcodeStyle) || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
           return (
                <Flex direction="column" bg="white" maxW="90%" px={8} py={5} borderRadius={20}>

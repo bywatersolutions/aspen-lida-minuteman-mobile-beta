@@ -32,7 +32,7 @@ export const EventScreen = () => {
      const queryClient = useQueryClient();
      const id = route.params.id;
      const source = route.params.source;
-     const { user, locations, accounts, cards, updatePickupLocations, updateLinkedAccounts, updateLibraryCards } = React.useContext(UserContext);
+     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
