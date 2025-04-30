@@ -34,6 +34,7 @@ documentation/~*.tmp
 
 app-configs/apps.json
 app-configs/projectOwner.json
+app-configs/*.projectOwner.json
 code/credentials.json
 
 scripts/*.sh

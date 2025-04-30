@@ -35,6 +35,7 @@ documentation/~*.tmp
 code/.env
 app-configs/apps.json
 app-configs/projectOwner.json
+app-configs/*.projectOwner.json
 code/credentials.json
 code/app.config.js
 code/eas.json

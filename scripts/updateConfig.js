@@ -1,6 +1,5 @@
 const fs = require('fs');
 const data = require('../app-configs/apps.json');
-const owner = require('../app-configs/projectOwner.json');
 const version = require('../version.json');
 
 function getArgs() {
@@ -25,8 +24,14 @@ function getArgs() {
 
 const args = getArgs();
 const instance = args.instance;
-
 const app = data[instance];
+
+let owner;
+if (fs.existsSync('../app-configs/' + app['slug'] + '.projectOwner.json')) {
+     owner = require('../app-configs/' + app['slug'] + '.projectOwner.json');
+}else{
+     owner = require('../app-configs/projectOwner.json');
+}
 
 fs.readFile('../code/eas.json', 'utf8', function (err, data) {
      if (err) {
