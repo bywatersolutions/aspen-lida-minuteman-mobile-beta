@@ -268,7 +268,7 @@ export const Settings_PickupLocations = () => {
 							setRememberPickupLocation(value);
 						}}>
 						<CheckboxIndicator mr="$2">
-							<CheckboxIcon as={CheckIcon} />
+							<CheckboxIcon as={CheckIcon} color={textColor} />
 						</CheckboxIndicator>
 						<CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'bypass_pickup_location_prompt')}</CheckboxLabel>
 					</Checkbox>

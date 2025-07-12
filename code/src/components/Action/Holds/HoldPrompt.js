@@ -468,7 +468,7 @@ export const HoldPrompt = (props) => {
                               ) : null}
                               {!isFetching && _.isEmpty(volumeId) && (typeOfHold === 'either' || typeOfHold === 'item') ? <SelectItemHold theme={theme} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
                               {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} /> : null}
-                              {_.isArray(locations) && _.size(locations) > 1 && !isEContent ? (
+                              {(_.isArray(locations) && _.size(locations) > 1 && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
                                    <FormControl mt="$1">
                                         <FormControlLabel>
                                              <FormControlLabelText size="sm" color={textColor}>
@@ -504,8 +504,10 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
 
                               ) : null}
-                              <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} />
-                              {_.isArray(locations) && _.size(locations) > 1 && !isEContent && (library.allowRememberPickupLocation) ? (
+                              {!user.rememberHoldPickupLocation ? (
+                                  <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} />
+                              ) : null}
+                              {_.size(locations) > 1 && _.size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
                                   <FormControl mb="$3">
                                        <Checkbox
                                            size="sm"
@@ -516,7 +518,7 @@ export const HoldPrompt = (props) => {
                                                 setRememberPickupLocation(value);
                                            }}>
                                             <CheckboxIndicator mr="$2">
-                                                 <CheckboxIcon as={CheckIcon} />
+                                                 <CheckboxIcon as={CheckIcon} color={textColor} />
                                             </CheckboxIndicator>
                                             <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'always_use_pickup_location')}</CheckboxLabel>
                                        </Checkbox>
