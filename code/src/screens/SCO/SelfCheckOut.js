@@ -191,7 +191,7 @@ export const SelfCheckOut = () => {
                return (
                     <HStack space="md" justifyContent="space-between">
                          <Text fontSize="xs" w="70%" color={textColor}>
-                              <Text bold>{title}</Text> ({barcode})
+                              <Text bold color={textColor}>{title}</Text> ({barcode})
                          </Text>
                          <Text fontSize="xs" w="25%" color={textColor}>
                               {dueDate}

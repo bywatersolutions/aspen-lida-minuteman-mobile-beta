@@ -215,15 +215,15 @@ export const SelfRegistration = () => {
 								) : null}
 
 								{results.barcode ? (
-									<Text mb="$3" color={textColor}>Your library card is <Text bold>{results.barcode}</Text></Text>
+									<Text mb="$3" color={textColor}>Your library card is <Text bold color={textColor}>{results.barcode}</Text></Text>
 								) : null}
 
 								{results.username ? (
-									<Text mb="$3" color={textColor}>Your username is <Text bold>{results.username}</Text></Text>
+									<Text mb="$3" color={textColor}>Your username is <Text bold color={textColor}>{results.username}</Text></Text>
 								) : null}
 
 								{results.password ? (
-									<Text mb="$3" color={textColor}>Your initial password is <Text bold>{results.password}</Text></Text>
+									<Text mb="$3" color={textColor}>Your initial password is <Text bold color={textColor}>{results.password}</Text></Text>
 								) : null}
 
 								{results.requirePinReset ? (
