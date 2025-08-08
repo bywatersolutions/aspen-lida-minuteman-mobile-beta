@@ -24,6 +24,7 @@ import { SelectYourLibrary } from './SelectYourLibrary';
 import { SelfRegistration } from './SelfRegistration';
 import { SplashScreen } from './Splash';
 import { createGlueTheme } from '../../themes/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
@@ -49,7 +50,7 @@ export const LoginScreen = () => {
      const [enableSelfRegistration, setEnableSelfRegistration] = React.useState(false);
      const [selfRegistrationFields, setSelfRegistrationFields] = React.useState([]);
      const { updateLibrary } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor, updateTheme } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
      let isCommunity = true;
      if (!_.includes(GLOBALS.slug, 'aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
           isCommunity = false;
@@ -80,6 +81,14 @@ export const LoginScreen = () => {
                               if (!result.shouldShowSelectLibrary) {
                                    updateSelectedLibrary(result.libraries[0]);
                               }
+                         }
+                    });
+
+                    await AsyncStorage.getItem('@colorMode').then(async (mode) => {
+                         if (mode === 'light' || mode === 'dark') {
+                              updateColorMode(mode);
+                         } else {
+                              updateColorMode('light');
                          }
                     });
 
