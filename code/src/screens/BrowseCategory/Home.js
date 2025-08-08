@@ -31,7 +31,7 @@ export const DiscoverHomeScreen = () => {
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
 
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
      const { notificationOnboard } = React.useContext(UserContext);
@@ -361,7 +361,7 @@ export const DiscoverHomeScreen = () => {
                     {androidEndSupportMessage()}
                     {showSystemMessage()}
                     <FormControl pb="$5">
-                         <Input>
+                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
                               <InputSlot>
                                    <InputIcon as={SearchIcon} ml="$2" color={textColor} />
                               </InputSlot>
