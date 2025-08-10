@@ -1,10 +1,11 @@
 import React from 'react';
-import { Button, Center, Heading, HStack, Icon, Text } from '@gluestack-ui/themed-native-base';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationService';
+import { ThemeContext } from '../context/initialContext';
 
 /**
  * Catch an error and display it to the user
@@ -16,23 +17,26 @@ import { getTermFromDictionary } from '../translations/TranslationService';
  * @param {string} reloadAction
  **/
 export function loadError(error, reloadAction = '') {
+     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+
      return (
           <Center flex={1}>
                <HStack>
-                    <Icon as={MaterialIcons} name="error" size="md" mt={0.5} mr={1} color="error.500" />
-                    <Heading color="error.500" mb={2}>
+                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color={theme['colors']['error']['500']} />
+                    <Heading color={theme['colors']['error']['500']} mb="$2">
                          {getTermFromDictionary('en', 'error')}
                     </Heading>
                </HStack>
-               <Text bold w="75%" textAlign="center">
+               <Text bold w="75%" textAlign="center" color={textColor}>
                     {getTermFromDictionary('en', 'error_loading_results')}
                </Text>
                {reloadAction ? (
-                    <Button mt={5} colorScheme="primary" onPress={reloadAction} startIcon={<Icon as={MaterialIcons} name="refresh" size={5} />}>
-                         {getTermFromDictionary('en', 'button_reload')}
+                    <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor={theme['colors']['primary']['500']}>
+                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color={theme['colors']['primary']['500-text']} /></ButtonIcon>
+                         <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'button_reload')}</ButtonText>
                     </Button>
                ) : null}
-               <Text fontSize="xs" w="75%" mt={5} color="muted.500" textAlign="center">
+               <Text fontSize="xs" w="75%" mt="$5" color={theme['colors']['muted']['500']} textAlign="center">
                     ERROR: {error}
                </Text>
           </Center>
