@@ -70,7 +70,7 @@ const AddLinkedAccount = () => {
                          <ModalBody>
                               <FormControl>
                                    <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'username')}</FormControlLabelText></FormControlLabel>
-                                   <Input>
+                                   <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
                                         <InputField onChangeText={(text) => setNewUser(text)}
                                                       autoCorrect={false}
                                                       autoCapitalize="none"
@@ -91,7 +91,7 @@ const AddLinkedAccount = () => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'password')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input>
+                                   <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
                                         <InputField onChangeText={(text) => setPassword(text)} value={password} color={textColor} autoCorrect={false}
                                                     autoCapitalize="none" id="password" returnKeyType="next"
                                                     textContentType="password" required size="$lg" type={showPassword ? 'text' : 'password'} ref={passwordRef}

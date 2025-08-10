@@ -528,7 +528,7 @@ const SearchBox = (props) => {
               borderColor: colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600'],
          }} borderBottomWidth={1}>
               <FormControl pb="$5">
-                   <Input>
+                   <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
                         <InputSlot>
                              <InputIcon as={SearchIcon} ml="$2" color={textColor} />
                         </InputSlot>
