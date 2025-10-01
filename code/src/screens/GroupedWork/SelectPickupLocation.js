@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { Button, CheckIcon, FormControl, Heading, Modal, Select } from 'native-base';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HoldsContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
@@ -16,6 +17,7 @@ const SelectPickupLocation = (props) => {
      const { user, updateUser, accounts, locations } = React.useContext(UserContext);
      const { updateHolds } = React.useContext(HoldsContext);
      const { library } = React.useContext(LibrarySystemContext);
+     const insets = useSafeAreaInsets();
 
      const isPlacingHold = action.includes('hold');
 
@@ -106,6 +108,9 @@ const SelectPickupLocation = (props) => {
                                                   bg: 'tertiary.300',
                                                   endIcon: <CheckIcon size="5" />,
                                              }}
+                                             _actionSheet={{
+                                                  pb: Platform.OS === 'android' ? `${insets.bottom + 16}px` : 4,
+                                             }}
                                              mt={1}
                                              mb={3}
                                              onValueChange={(itemValue) => setActiveAccount(itemValue)}>
@@ -127,6 +132,9 @@ const SelectPickupLocation = (props) => {
                                         _selectedItem={{
                                              bg: 'tertiary.300',
                                              endIcon: <CheckIcon size="5" />,
+                                        }}
+                                        _actionSheet={{
+                                             pb: Platform.OS === 'android' ? `${insets.bottom + 16}px` : 4,
                                         }}
                                         mt={1}
                                         mb={2}

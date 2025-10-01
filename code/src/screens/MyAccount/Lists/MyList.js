@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
      Badge,
      BadgeText,
@@ -35,7 +36,8 @@ import {
      VStack,
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform, SafeAreaView } from 'react-native';
+import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError, popToast } from '../../../components/loadError';
 
 // custom components and helper files
@@ -67,6 +69,7 @@ export const MyList = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const [list] = React.useState(providedList);
      const { language } = React.useContext(LanguageContext);
+     const insets = useSafeAreaInsets();
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort By Title',
           dateAdded: 'Sort By Date Added',
@@ -422,7 +425,10 @@ export const MyList = () => {
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                             <SelectContent
+                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                             >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>

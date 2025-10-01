@@ -18,7 +18,8 @@ import {
      Text, AlertIcon, InfoIcon, AlertText, Alert,
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { SafeAreaView, SectionList } from 'react-native';
+import { Platform, SectionList } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
@@ -46,6 +47,7 @@ export const MyHolds = () => {
      const [pickupLocations, setPickupLocations] = React.useState([]);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
 
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort by Title',
@@ -329,7 +331,10 @@ export const MyHolds = () => {
                                                   </SelectTrigger>
                                                   <SelectPortal>
                                                        <SelectBackdrop />
-                                                       <SelectContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                                       <SelectContent
+                                                            bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                            pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                       >
                                                             <SelectDragIndicatorWrapper>
                                                                  <SelectDragIndicator />
                                                             </SelectDragIndicatorWrapper>
@@ -374,7 +379,10 @@ export const MyHolds = () => {
                                              </SelectTrigger>
                                              <SelectPortal>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                                  <SelectContent
+                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                  >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
@@ -463,13 +471,16 @@ export const MyHolds = () => {
                                              </SelectTrigger>
                                              <SelectPortal>
                                                   <SelectBackdrop />
-                                                  <SelectContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                                  <SelectContent
+                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                  >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                   <SelectItem label={sortBy.title} value="sortTitle" key={0} bgColor={userHoldReadySortMethod == "sortTitle" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "sortTitle" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
                                                   <SelectItem label={sortBy.author} value="author" key={1} bgColor={userHoldReadySortMethod == "author" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "author" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                  <SelectItem label={sortBy.format} value="format" key={2}bgColor={userHoldReadySortMethod == "format" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "format" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
+                                                  <SelectItem label={sortBy.format} value="format" key={2} bgColor={userHoldReadySortMethod == "format" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "format" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
                                                   <SelectItem label={sortBy.expiration} value="expire" key={3} bgColor={userHoldReadySortMethod == "expire" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "expire" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
                                                   <SelectItem label={sortBy.date_placed} value="placed" key={4} bgColor={userHoldReadySortMethod == "placed" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "placed" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
                                                   <SelectItem label={sortBy.pickup_location} value="location" key={5} bgColor={userHoldReadySortMethod == "location" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userHoldReadySortMethod == "location" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
@@ -536,7 +547,10 @@ export const MyHolds = () => {
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                             <SelectContent
+                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                             >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
@@ -617,7 +631,7 @@ export const MyHolds = () => {
      };
 
      return (
-          <SafeAreaView>
+          <Box flex={1}>
                {actionButtons('none')}
                <Box>
                     <CheckboxGroup
@@ -651,7 +665,7 @@ export const MyHolds = () => {
                          ) : null}
                     </CheckboxGroup>
                </Box>
-          </SafeAreaView>
+          </Box>
      );
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -22,6 +23,7 @@ export const SelfRegistration = () => {
 	const [values, setValues] = React.useState([]);
 	const [showResults, setShowResults] = React.useState(false);
 	const [results, setResults] = React.useState('');
+	const insets = useSafeAreaInsets();
 
 	React.useEffect(() => {
 		(async () => {
@@ -151,7 +153,10 @@ export const SelfRegistration = () => {
 											</SelectTrigger>
 											<SelectPortal>
 												<SelectBackdrop />
-												<SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+												<SelectContent
+													bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+													pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+												>
 													<SelectDragIndicatorWrapper>
 														<SelectDragIndicator />
 													</SelectDragIndicatorWrapper>

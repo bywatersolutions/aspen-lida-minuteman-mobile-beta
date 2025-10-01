@@ -4,6 +4,7 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import {getTermFromDictionary} from "../../../translations/TranslationService";
 import {Platform} from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import _ from "lodash";
 import {
 	Box,
@@ -44,6 +45,7 @@ export const Settings_PickupLocations = () => {
 	const { language } = React.useContext(LanguageContext);
 	const { user, updateUser, locations } = React.useContext(UserContext);
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+	const insets = useSafeAreaInsets();
 
 	let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
 	let userPickupLocation1Id = user.myLocation1Id ?? "";
@@ -148,7 +150,10 @@ export const Settings_PickupLocations = () => {
 					</SelectTrigger>
 					<SelectPortal>
 						<SelectBackdrop />
-						<SelectContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+						<SelectContent
+							bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+							pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+						>
 							<SelectDragIndicatorWrapper>
 								<SelectDragIndicator />
 							</SelectDragIndicatorWrapper>
@@ -187,7 +192,10 @@ export const Settings_PickupLocations = () => {
 						</SelectTrigger>
 						<SelectPortal useRNModal={true}>
 							<SelectBackdrop />
-							<SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+							<SelectContent
+								bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+								pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+							>
 								<SelectDragIndicatorWrapper>
 									<SelectDragIndicator />
 								</SelectDragIndicatorWrapper>
@@ -224,7 +232,10 @@ export const Settings_PickupLocations = () => {
 						</SelectTrigger>
 						<SelectPortal>
 							<SelectBackdrop />
-							<SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+							<SelectContent
+								bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+								pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+							>
 								<SelectDragIndicatorWrapper>
 									<SelectDragIndicator />
 								</SelectDragIndicatorWrapper>

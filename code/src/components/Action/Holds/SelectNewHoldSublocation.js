@@ -1,5 +1,6 @@
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, SelectScrollView, FormControl, FormControlLabel, FormControlLabelText, Text } from '@gluestack-ui/themed';
 import _ from 'lodash';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -8,6 +9,7 @@ import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from
 
 export const SelectNewHoldSublocation = (props) => {
      const {sublocations, location, activeSublocation, setActiveSublocation, language, textColor, theme, colorMode} = props;
+     const insets = useSafeAreaInsets();
 
      if (sublocations !== undefined) {
           try {
@@ -62,7 +64,10 @@ export const SelectNewHoldSublocation = (props) => {
                                              </SelectTrigger>
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                                  <SelectContent
+                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                  >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>

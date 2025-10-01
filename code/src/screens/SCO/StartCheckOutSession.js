@@ -1,4 +1,6 @@
 import React from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
      LanguageContext,
      ThemeContext,
@@ -42,6 +44,7 @@ export const StartCheckOutSession = () => {
      const { language } = React.useContext(LanguageContext);
      const { user, accounts } = React.useContext(UserContext);
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
 
      let startNew = useRoute().params?.startNew ?? false;
 
@@ -144,7 +147,10 @@ export const StartCheckOutSession = () => {
                                         </SelectTrigger>
                                         <SelectPortal useRNModal={true}>
                                              <SelectBackdrop />
-                                             <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                             <SelectContent
+                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                             >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>

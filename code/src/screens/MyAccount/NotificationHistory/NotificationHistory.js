@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, Dot } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import _ from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

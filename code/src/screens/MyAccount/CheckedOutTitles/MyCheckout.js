@@ -8,6 +8,8 @@ import {
      ActionsheetItemText, ActionsheetBackdrop, Box, HStack, Icon, Pressable, Text, VStack, ActionsheetIcon,
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
@@ -31,6 +33,7 @@ export const MyCheckout = (props) => {
      const { language } = React.useContext(LanguageContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
 
      if (checkoutSource != 'all' && checkoutSource != checkout.source) {
           //console.log("Hiding checkout that is the wrong source " + checkoutSource);
@@ -184,7 +187,10 @@ export const MyCheckout = (props) => {
                </HStack>
                <Actionsheet isOpen={isOpen} onClose={toggle} size="full">
                     <ActionsheetBackdrop />
-                    <ActionsheetContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ActionsheetContent
+                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                    >
                          <ActionsheetItem h={60} px="$4">
                               <ActionsheetItemText bold color={textColor}>{checkout.title}</ActionsheetItemText>
                          </ActionsheetItem>

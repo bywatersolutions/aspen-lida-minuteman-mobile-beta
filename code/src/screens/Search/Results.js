@@ -3,7 +3,8 @@ import { CommonActions } from '@react-navigation/native';
 import _ from 'lodash';
 import { Badge, Box, Button, Center, Container, Heading, HStack, Icon, Image, Pressable, Stack, Text, VStack, FlatList } from 'native-base';
 import * as React from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { loadError } from '../../components/loadError';

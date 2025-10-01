@@ -44,7 +44,8 @@ import {
      SelectBackdrop, SelectDragIndicatorWrapper, SelectDragIndicator, SelectPortal, SelectContent, SelectItem
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { loadError } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
@@ -72,6 +73,7 @@ export const MyReadingHistory = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { user, updateUser, readingHistory, updateReadingHistory } = React.useContext(UserContext);
+     const insets = useSafeAreaInsets();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const pageSize = 20;
      const systemMessagesForScreen = [];
@@ -336,7 +338,10 @@ export const MyReadingHistory = () => {
                                              </SelectTrigger>
                                              <SelectPortal>
                                                   <SelectBackdrop />
-                                                  <SelectContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                                  <SelectContent
+                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                  >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
@@ -518,6 +523,7 @@ const Item = (data) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
      const item = data.data;
 
      const [deleting, setDelete] = React.useState(false);
@@ -577,7 +583,10 @@ const Item = (data) => {
                     </HStack>
                     <Actionsheet isOpen={isOpen} onClose={toggle} size="full">
                          <ActionsheetBackdrop />
-                         <ActionsheetContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                         <ActionsheetContent
+                              bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                              pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                         >
                               <Box w="100%" h="$60" px="$4" justifyContent="center">
                                    <Text
                                         fontSize="$lg"

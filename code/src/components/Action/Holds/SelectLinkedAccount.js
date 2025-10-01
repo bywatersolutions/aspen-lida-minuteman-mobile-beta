@@ -1,11 +1,13 @@
 import { FormControl, Select, CheckIcon } from 'native-base';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 export const SelectLinkedAccount = (props) => {
      console.log(props);
      const { user, isPlacingHold, activeAccount, setActiveAccount, accounts } = props;
+     const insets = useSafeAreaInsets();
 
      return (
           <>
@@ -20,6 +22,9 @@ export const SelectLinkedAccount = (props) => {
                          _selectedItem={{
                               bg: 'tertiary.300',
                               endIcon: <CheckIcon size="5" />,
+                         }}
+                         _actionSheet={{
+                              pb: Platform.OS === 'android' ? `${insets.bottom + 16}px` : 4,
                          }}
                          mt={1}
                          mb={3}

@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import _ from 'lodash';
 import { Box, Button, Center, FlatList, FormControl, Input, Text } from 'native-base';
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LanguageContext, LibrarySystemContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';

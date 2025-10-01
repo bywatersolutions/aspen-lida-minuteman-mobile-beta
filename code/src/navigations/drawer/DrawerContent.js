@@ -12,7 +12,8 @@ import _ from 'lodash';
 import { Badge, Box, Button, Container, Divider, HStack, Icon, Image, Pressable, Text, useColorModeValue, useToken, VStack } from 'native-base';
 import React from 'react';
 import navigation, { AuthContext } from '../../components/navigation';
-import { AppState, Platform } from 'react-native';
+import { AppState, Platform, View } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { AppStateStatus } from "react-native";
 
 // custom components and helper files
@@ -62,6 +63,7 @@ export const DrawerContent = () => {
      const [userLongitude, setUserLongitude] = React.useState(0);
      const linkTo = useLinkTo();
      const queryClient = useQueryClient();
+     const insets = useSafeAreaInsets();
      const { user, accounts, viewers, cards, lists, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updatePreferredPickupLocationIsValid, updatePreferredPickupLocationWarning, updateLists, updateSavedEvents, updateLibraryCards, updateLinkedViewerAccounts, updateReadingHistory, notificationSettings, expoToken, updateNotificationOnboard, notificationOnboard, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod } = React.useContext(UserContext);
      const { library, catalogStatus, updateCatalogStatus } = React.useContext(LibrarySystemContext);
      const [notifications, setNotifications] = React.useState([]);
@@ -388,49 +390,59 @@ export const DrawerContent = () => {
 
 
      return (
-          <DrawerContentScrollView>
-               <VStack space="4" my="2" mx="1">
-                    <UserProfileOverview />
+          <SafeAreaView style={{ flex: 1 }} edges={Platform.OS === 'android' ? ['top'] : ['top', 'bottom']}>
+               <DrawerContentScrollView
+                    contentContainerStyle={{
+                         paddingBottom: Platform.OS === 'android' ? insets.bottom - 50 : 0,
+                         flexGrow: 1
+                    }}
+               >
+                    <VStack space="4" my="2" mx="1" flex={1}>
+                         <UserProfileOverview />
 
-                    {displayILSMessages()}
+                         {displayILSMessages()}
 
-                    <Divider />
+                         <Divider />
 
-                    <VStack divider={<Divider />} space="4">
-                         <VStack>
-                              <Checkouts />
-                              <Holds />
-                              <UserLists />
-                              <SavedSearches />
-                              <ReadingHistory />
-                                     <YearInReview />
-                              <Fines />
-                              <NotificationHistory />
-                              <Events />
-                              <Campaigns />
-                         </VStack>
-
-                         <VStack space="3">
+                         <VStack divider={<Divider />} space="4" flex={1}>
                               <VStack>
-                                   <UserProfile />
-                                   <LinkedAccounts />
-                                   <AlternateLibraryCard />
+                                   <Checkouts />
+                                   <Holds />
+                                   <UserLists />
+                                   <SavedSearches />
+                                   <ReadingHistory />
+                                        <YearInReview />
+                                   <Fines />
+                                   <NotificationHistory />
+                                   <Events />
+                                   <Campaigns />
+                              </VStack>
+
+                              <VStack space="3">
+                                   <VStack>
+                                        <UserProfile />
+                                        <LinkedAccounts />
+                                        <AlternateLibraryCard />
+                                   </VStack>
                               </VStack>
                          </VStack>
-                    </VStack>
 
-                    {/* logout button, color mode switcher, language switcher */}
-                    <VStack space={3} alignItems="center">
-                         <HStack space={2}>
-                              <LogOutButton />
-                         </HStack>
-                         <HStack space={2}>
-                              <UseColorMode showText={false} />
-                              <LanguageSwitcher />
-                         </HStack>
+                         {/* logout button, color mode switcher, language switcher */}
+                         <VStack space={3} alignItems="center" pt="4">
+                              <HStack space={2}>
+                                   <LogOutButton />
+                              </HStack>
+                              <HStack space={2}>
+                                   <UseColorMode showText={false} />
+                                   <LanguageSwitcher />
+                              </HStack>
+                         </VStack>
                     </VStack>
-               </VStack>
-          </DrawerContentScrollView>
+               </DrawerContentScrollView>
+               {Platform.OS === 'android' && (
+                    <View style={{ height: insets.bottom, backgroundColor: 'transparent' }} />
+               )}
+          </SafeAreaView>
      );
 };
 

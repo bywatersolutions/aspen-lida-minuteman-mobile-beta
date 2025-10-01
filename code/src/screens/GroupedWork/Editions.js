@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
@@ -33,6 +34,7 @@ export const Editions = () => {
      const { user } = React.useContext(UserContext);
      const { language } = React.useContext(LanguageContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
      const [isLoading, setLoading] = React.useState(false);
      const [confirmingHold, setConfirmingHold] = React.useState(false);
      const [selectedItem, setSelectedItem] = React.useState('');
@@ -249,7 +251,10 @@ export const Editions = () => {
                                                        </SelectTrigger>
                                                        <SelectPortal useRNModal={true}>
                                                             <SelectBackdrop />
-                                                            <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                                                            <SelectContent
+                                                                 bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                                 pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                            >
                                                                  <SelectDragIndicatorWrapper>
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>

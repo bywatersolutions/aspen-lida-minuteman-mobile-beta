@@ -4,6 +4,8 @@ import { Image } from 'expo-image';
 import _ from 'lodash';
 import { Actionsheet, ActionsheetItem, ActionsheetBackdrop, ActionsheetContent, ActionsheetItemText, ActionsheetDragIndicatorWrapper, ActionsheetDragIndicator, Box, Button, ButtonText, Center, Checkbox, CheckboxIndicator, CheckboxIcon, CheckIcon, HStack, Icon, Pressable, ActionsheetIcon, VStack } from '@gluestack-ui/themed';
 import React from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { popAlert } from '../../../components/loadError';
 import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getStatus, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
@@ -32,6 +34,7 @@ export const MyHold = (props) => {
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
      const [cancelling, startCancelling] = React.useState(false);
      const [checkingOut, startCheckingOut] = React.useState(false);
      const [thawing, startThawing] = React.useState(false);
@@ -372,7 +375,10 @@ export const MyHold = (props) => {
                </Pressable>
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                     <ActionsheetBackdrop />
-                    <ActionsheetContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ActionsheetContent
+                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                    >
                          <ActionsheetItem h={60} px="$4">
                               <ActionsheetItemText bold  color={textColor}>{hold.title}</ActionsheetItemText>
                          </ActionsheetItem>
@@ -395,6 +401,7 @@ export const ManageSelectedHolds = (props) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
      const handleClose = () => setShowActionsheet(!showActionsheet);
@@ -534,7 +541,11 @@ export const ManageSelectedHolds = (props) => {
                </Button>
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                     <ActionsheetBackdrop />
-                    <ActionsheetContent zIndex={999} bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ActionsheetContent
+                         zIndex={999}
+                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                    >
                          <ActionsheetDragIndicatorWrapper>
                               <ActionsheetDragIndicator />
                          </ActionsheetDragIndicatorWrapper>
@@ -553,6 +564,7 @@ export const ManageAllHolds = (props) => {
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
      const handleClose = () => setShowActionsheet(!showActionsheet);     const [cancelling, startCancelling] = React.useState(false);
@@ -648,7 +660,11 @@ export const ManageAllHolds = (props) => {
                     </Button>
                     <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                          <ActionsheetBackdrop />
-                         <ActionsheetContent zIndex={999} bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                         <ActionsheetContent
+                              zIndex={999}
+                              bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                              pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                         >
                               <ActionsheetDragIndicatorWrapper>
                                    <ActionsheetDragIndicator />
                               </ActionsheetDragIndicatorWrapper>

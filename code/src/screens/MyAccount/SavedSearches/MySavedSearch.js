@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import _ from 'lodash';
 import { Badge, Box, Center, Container, FlatList, HStack, Pressable, Stack, Text, VStack } from 'native-base';
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
