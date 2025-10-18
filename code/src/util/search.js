@@ -80,8 +80,6 @@ export async function getDefaultFacets(url, limit = 5, language) {
           SEARCH.defaultFacets = response.data.result.data;
           return response.data.result;
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
-          logErrorMessage(response);
           return response;
      }
 }
@@ -159,8 +157,6 @@ export async function getAppliedFilters(url, language) {
           buildParamsForUrl();
           return response.data.result.data;
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
-          logErrorMessage(response);
           return [];
      }
 }
@@ -182,8 +178,6 @@ export async function getSortList(url, language) {
           SEARCH.sortList = response.data.result;
           return response.data.result;
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
-          logErrorMessage(response);
           return [];
      }
 }
@@ -217,8 +211,6 @@ export async function getAvailableFacets(url, language) {
           SEARCH.defaultFacets = defaults;
           return response.data.result;
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
-          logErrorMessage(response);
           return [];
      }
 }
@@ -262,7 +254,6 @@ export async function searchAvailableFacets(facet, label, term, url, language) {
                }
           );
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
           logErrorMessage(response);
      }
      return {
@@ -301,8 +292,6 @@ export async function getAvailableFacetsKeys(url, language) {
           SEARCH.pendingFilters = map;
           return map;
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
-          logErrorMessage(response);
           return [];
      }
 }
@@ -381,6 +370,8 @@ export async function getSearchIndexes(url, language = 'en', source = 'local') {
                SEARCH.validIndexes = response.data.result.indexes[source];
                return response.data.result.indexes[source];
           }
+     } else {
+          logErrorMessage(response);
      }
 
      return {
@@ -406,7 +397,6 @@ export async function getSearchSources(url, language = 'en') {
                return response.data.result.sources;
           }
      } else {
-          getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
           logErrorMessage(response);
      }
 
