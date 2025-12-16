@@ -31,7 +31,7 @@ import { getLocations } from '../../util/api/location';
 import { fetchNotificationHistory, fetchReadingHistory, fetchSavedSearches, getLinkedAccounts, getPatronCheckedOutItems, sortCheckouts, getPatronHolds, sortHolds, getViewerAccounts, refreshProfile, reloadProfile, revalidateUser, validateSession, formatReadingHistory, formatNotificationHistory, formatLinkedAccounts, formatHolds } from '../../util/api/user';
 import { getErrorMessage, passUserToDiscovery, stripHTML } from '../../util/apiAuth';
 import { GLOBALS } from '../../util/globals';
-import { formatBrowseCategories, formatDiscoveryVersion, formatLocations, formatPickupLocations, getPickupLocations, reloadBrowseCategories } from '../../util/loadLibrary';
+import { formatDiscoveryVersion, formatPickupLocations, getPickupLocations, reloadBrowseCategories } from '../../util/loadLibrary';
 import { getBrowseCategoryListForUser, getILSMessages, PATRON } from '../../util/loadPatron';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../util/logging.js';
@@ -178,7 +178,7 @@ export const DrawerContent = () => {
           initialData: category,
           onSuccess: (data) => {
                if(data.ok) {
-                    const categories = formatBrowseCategories(data.data.result);
+                    const categories = data.data.result;
                     updateBrowseCategories(categories);
                } else {
                     logDebugMessage("Error fetching browse categories");

@@ -14,7 +14,7 @@ import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks,
 import { getLocationInfo, getSelfCheckSettings } from '../../util/api/location';
 import { fetchNotificationHistory, formatLinkedAccounts, formatNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, refreshProfile } from '../../util/api/user';
 import { GLOBALS } from '../../util/globals';
-import { formatBrowseCategories, LIBRARY, reloadBrowseCategories } from '../../util/loadLibrary';
+import { LIBRARY, reloadBrowseCategories } from '../../util/loadLibrary';
 import { getBrowseCategoryListForUser, PATRON } from '../../util/loadPatron';
 import { CatalogOffline } from './CatalogOffline';
 import { ForceLogout } from './ForceLogout';
@@ -313,7 +313,7 @@ export const LoadingScreen = () => {
           onSuccess: (data) => {
                if(data.ok) {
                     setProgress(progress + (100 / numSteps));
-                    const categories = formatBrowseCategories(data.data.result);
+                    const categories = data.data.result;
                     updateBrowseCategories(categories);
                     updateMaxCategories(5);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {

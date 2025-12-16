@@ -16,7 +16,7 @@ import { NotificationsOnboard } from '../../components/NotificationsOnboard';
 import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { navigateStack, pushNavigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { formatBrowseCategories, formatDiscoveryVersion, reloadBrowseCategories } from '../../util/loadLibrary';
+import { formatDiscoveryVersion, reloadBrowseCategories } from '../../util/loadLibrary';
 import { updateBrowseCategoryStatus } from '../../util/loadPatron';
 import { getDefaultFacets, getSearchIndexes, getSearchSources } from '../../util/search';
 import DisplayBrowseCategory from './Category';
@@ -302,7 +302,7 @@ export const DiscoverHomeScreen = () => {
           setLoading(true);
           await reloadBrowseCategories(9999, library.baseUrl).then((response) => {
                if(response.ok) {
-                    const categories = formatBrowseCategories(response.data.result);
+                    const categories = response.data.result;
                     updateBrowseCategories(categories);
                     queryClient.setQueryData(['browse_categories', library.baseUrl, language, maxNum], categories);
                     queryClient.setQueryData(['browse_categories', library.baseUrl, language, 9999], categories);
