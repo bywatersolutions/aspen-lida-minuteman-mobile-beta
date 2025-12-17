@@ -67,7 +67,7 @@ const DisplayBrowseCategory = ({category}) => {
      }
 
      const onPressHideAll = async (textId) => {
-          await updateBrowseCategoryStatus(textId, library.baseUrl, true).then(async (response) => {
+          await updateBrowseCategoryStatus(textId, library.baseUrl, 'all').then(async (response) => {
                if (!response.ok) {
                     const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
                     setErrorTitle(error.title);
