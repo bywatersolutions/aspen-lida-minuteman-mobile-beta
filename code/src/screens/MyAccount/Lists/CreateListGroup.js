@@ -112,6 +112,7 @@ const CreateListGroup = (props) => {
                                                   }
                                                   queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                   queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
+                                                  queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
                                                   toggle();
                                                   setLoading(true);
                                                   popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
