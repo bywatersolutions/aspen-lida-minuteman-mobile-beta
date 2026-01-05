@@ -116,6 +116,8 @@ const DisplayBrowseCategory = ({category}) => {
 const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
      const { colorMode, theme } = React.useContext(ThemeContext);
 
+     const isSystemCategory = textId === 'system_user_lists' || textId === 'system_saved_searches' || textId === 'system_recommended_for_you';
+
      const onPressCategory = (label, key, source) => {
           let screen = 'SearchByCategory';
           if (source === 'List') {
@@ -129,6 +131,27 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
                id: key,
           });
      };
+
+     if(isSystemCategory) {
+          return (
+               <Box maxWidth="80%">
+                    <Text
+                         color={colorMode === 'light' ? theme['colors']['gray']['800'] : theme['colors']['coolGray']['200']}
+                         bold
+                         mb="$1"
+                         sx={{
+                              '@base': {
+                                   fontSize: 18,
+                              },
+                              '@lg': {
+                                   fontSize: 24,
+                              },
+                         }}>
+                         {category}
+                    </Text>
+               </Box>
+          )
+     }
 
      return (
           <Pressable maxWidth="80%" onPress={() => onPressCategory(category, textId, source)}>
@@ -169,6 +192,14 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      }
 
      let id = record.key ?? record.id;
+     if (typeof id === 'string' && (id.startsWith('bc_') || id.startsWith('sbc_'))) {
+          id = record.textId;
+     }
+
+     if (!_.isUndefined(record.listId) && !_.isUndefined(record.sourceId)) {
+          id = record.sourceId;
+     }
+
      if (type === 'Event') {
           if (_.includes(id, 'lc_')) {
                type = 'library_calendar_event';
@@ -191,12 +222,25 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           type = type.toLowerCase();
      }
 
+     if(type === 'groupedwork') {
+          type = 'grouped_work';
+     }
+
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
      const imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
 
      let isNew = false;
      if (typeof record.isNew !== 'undefined') {
           isNew = record.isNew;
+     }
+
+     let getTitle = record.title_display ?? record.title;
+     if (typeof getTitle === 'undefined') {
+          if(record.label) {
+               getTitle = record.label;
+          } else {
+               getTitle = 'Unknown';
+          }
      }
 
      const onPressItem = (key, type, title) => {
@@ -206,7 +250,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     title: title,
                     prevRoute: 'HomeScreen',
                });
-          } else if (type === 'SavedSearch') {
+          } else if (type === 'SavedSearch' || type === 'savedsearch') {
                navigateStack('BrowseTab', 'SearchBySavedSearch', {
                     id: key,
                     title: title,
@@ -243,7 +287,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
 
      return (
           <Pressable
-               onPress={() => onPressItem(id, type, record.title_display ?? record.title)}
+               onPress={() => onPressItem(id, type, getTitle)}
                ml="$1"
                mr="$3"
                sx={{
@@ -257,7 +301,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     },
                }}>
                <Image
-                    alt={record.title_display ?? record.title}
+                    alt={getTitle}
                     source={imageUrl}
                     style={{
                          width: '100%',
@@ -286,6 +330,8 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data })
 
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { library } = React.useContext(LibrarySystemContext);
+     const { language } = React.useContext(LanguageContext);
+     const { maxNum } = React.useContext(BrowseCategoryContext);
 
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
      const [errorTitle, setErrorTitle] = React.useState('');
