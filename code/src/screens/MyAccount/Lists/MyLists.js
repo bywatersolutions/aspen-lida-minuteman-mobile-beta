@@ -62,7 +62,7 @@ export const MyLists = () => {
      if(user.lastListGroupViewed) {
           defaultListGroup = user.lastListGroupViewed;
      }
-     
+
      React.useEffect(() => {
           if (defaultListGroup) {
                updateSelectedListGroup(defaultListGroup);
@@ -328,7 +328,7 @@ export const MyLists = () => {
                               ) : null}
                          </Box>
                     ) : (
-                         <FlatList mt="$2" data={lists} ListEmptyComponent={listEmptyComponent} renderItem={({ item }) => renderList(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
+                         <FlatList px="$5" mt="$2" data={lists} ListEmptyComponent={listEmptyComponent} renderItem={({ item }) => renderList(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
                     )}
           </SafeAreaView>
      );
