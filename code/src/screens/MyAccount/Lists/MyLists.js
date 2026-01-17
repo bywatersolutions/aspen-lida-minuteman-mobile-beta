@@ -197,7 +197,6 @@ export const MyLists = () => {
           let lastUpdated = moment.unix(item.dateUpdated);
           lastUpdated = moment(lastUpdated).format('MMM D, YYYY');
           const listLastUpdatedOn = getTermFromDictionary(language, 'last_updated_on') + ' ' + lastUpdated;
-          const numListItems = item.numTitles ?? 0 + ' ' + getTermFromDictionary(language, 'items');
           let privacy = getTermFromDictionary(language, 'private');
           if (item.public === 1 || item.public === true || item.public === 'true') {
                privacy = getTermFromDictionary(language, 'public');
@@ -211,8 +210,7 @@ export const MyLists = () => {
                          }}
                          pl="$1"
                          pr="$1"
-                         py="$2"
-                         >
+                         py="$2">
                          <HStack space={3} mt="$2" mb="$2" justifyContent="flex-start">
                               <VStack space={1}>
                                    <Image
@@ -227,7 +225,9 @@ export const MyLists = () => {
                                         transition={1000}
                                         contentFit="cover"
                                    />
-                                   <Badge mt={1}><BadgeText>{privacy}</BadgeText></Badge>
+                                   <Badge mt={1}>
+                                        <BadgeText>{privacy}</BadgeText>
+                                   </Badge>
                               </VStack>
                               <VStack space={1} justifyContent="space-between" maxW="80%" pl="$2">
                                    <Box>
@@ -243,7 +243,7 @@ export const MyLists = () => {
                                              {listLastUpdatedOn}
                                         </Text>
                                         <Text fontSize="$xs" italic color={textColor}>
-                                             {numListItems}
+                                             {item.numTitles ?? 0} {getTermFromDictionary(language, 'items')}
                                         </Text>
                                    </Box>
                               </VStack>
