@@ -202,7 +202,11 @@ const CreateList = (props) => {
                                              onValueChange={(itemValue) => setNestedGroup(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
                                                   {nestedGroup !== "no" && nestedGroup !== "" ? (
-                                                       <SelectInput color={textColor} value={nestedGroup} />
+                                                       _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
+                                                            if (group.id === nestedGroup) {
+                                                                 return <SelectInput value={group.title} color={textColor} />;
+                                                            }
+                                                       })
                                                   ) : (
                                                        <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
                                                   )}
