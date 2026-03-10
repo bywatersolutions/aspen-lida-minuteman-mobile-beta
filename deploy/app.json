@@ -1,0 +1,15 @@
+{
+  "name": "Minuteman Mobile - Beta",
+  "slug": "minuteman-mobile-beta",
+  "easId": "d45e4d58-9fa7-4a7a-a8d8-b23a9eb7006c",
+  "reverseDns": "org.aspendiscovery.minutemantest",
+  "discoveryUrl": "https://test-minuteman.aspendiscovery.org/",
+  "greenhouseUrl": "https://test-minuteman.aspendiscovery.org/",
+  "libraryId": "2",
+  "themeId": "45",
+  "background": "#ffffff",
+  "sentryProject": "aspen-lida-minuteman-mobile-beta",
+  "sentryDsn": "https://df8ca95f30929b22a32c32afc4a41e91@o994439.ingest.us.sentry.io/4508093537386496",
+  "ascAppId": "6736707879",
+  "logLevel": "0"
+}
