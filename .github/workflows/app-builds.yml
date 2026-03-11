@@ -202,10 +202,14 @@ jobs:
           npx eas-cli submit -p ${{ matrix.platform }} --path ${{ matrix.platform == 'ios' && './app-prod.ipa' || './app-prod.aab' }} --non-interactive
         working-directory: ./code
 
+  notify-slack:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
       - name: 📢 Notify build completion
         if: always()
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
           SLACK_TITLE: 'Build Results for ${{ github.repository }}'
-          SLACK_MESSAGE: ${{ job.status == 'success' && 'Build completed successfully ✅' || 'Build failed ❌' }}
+          SLACK_MESSAGE: ${{ job.status == 'success' && 'Builds completed successfully ✅' || 'Builds failed ❌' }}
