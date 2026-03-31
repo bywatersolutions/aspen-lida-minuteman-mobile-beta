@@ -35,11 +35,30 @@ jobs:
         run: |
           git config --global user.email "dev@bywatersolutions.com"
           git config --global user.name "ByWater Dev Team"
-          git config pull.rebase true 
-          git checkout main
-          git rebase upstream/main
-          git pull
-          git push origin main
+
+          # Ensure we have everything
+          git fetch origin
+          git fetch upstream
+
+          # Checkout main explicitly from origin
+          git checkout -B main origin/main
+
+          # Rebase local commits onto upstream
+          git rebase upstream/main || {
+            echo "Rebase conflict detected. Aborting."
+            git rebase --abort
+            exit 1
+          }
+
+          # Show what changed (debug visibility)
+          echo "==== Git log after rebase ===="
+          git --no-pager log --oneline -n 10
+
+          echo "==== Diff vs origin/main ===="
+          git --no-pager diff origin/main || true
+
+          # Force push because rebase rewrites history
+          git push --force-with-lease origin main
 
       - name: ⚠️ Upstream main missing
         if: steps.check_branch.outputs.exists == 'false'
