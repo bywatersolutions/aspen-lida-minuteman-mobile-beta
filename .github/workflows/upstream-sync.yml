@@ -33,6 +33,8 @@ jobs:
       - name: 🔄 Rebase on upstream/main
         if: steps.check_branch.outputs.exists == 'true'
         run: |
+          git config --global user.email "dev@bywatersolutions.com"
+          git config --global user.name "ByWater Dev Team"
           git checkout main
           git rebase upstream/main
           git push origin main
