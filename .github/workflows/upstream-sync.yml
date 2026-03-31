@@ -37,6 +37,7 @@ jobs:
           git config --global user.name "ByWater Dev Team"
           git checkout main
           git rebase upstream/main
+          git pull
           git push origin main
 
       - name: ⚠️ Upstream main missing
