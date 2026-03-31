@@ -35,6 +35,7 @@ jobs:
         run: |
           git config --global user.email "dev@bywatersolutions.com"
           git config --global user.name "ByWater Dev Team"
+          git config pull.rebase true 
           git checkout main
           git rebase upstream/main
           git pull
