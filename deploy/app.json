@@ -6,7 +6,7 @@
   "discoveryUrl": "https://test-minuteman.aspendiscovery.org/",
   "greenhouseUrl": "https://test-minuteman.aspendiscovery.org/",
   "libraryId": "2",
-  "themeId": "45",
+  "themeId": "54",
   "background": "#ffffff",
   "sentryProject": "aspen-lida-minuteman-mobile-beta",
   "sentryDsn": "https://df8ca95f30929b22a32c32afc4a41e91@o994439.ingest.us.sentry.io/4508093537386496",
