@@ -479,7 +479,7 @@ export const HoldPrompt = (props) => {
                                         colorMode={colorMode}
                                    />
                               ) : null}
-                              {!isFetching && _.isEmpty(volumeId) && (typeOfHold === 'either' || typeOfHold === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
+                              {data !== undefined && !isFetching && _.isEmpty(volumeId) && (typeOfHold === 'either' || typeOfHold === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
                               {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode}  /> : null}
                               {(_.isArray(locations) && (_.size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
                                    <FormControl mt="$1">
