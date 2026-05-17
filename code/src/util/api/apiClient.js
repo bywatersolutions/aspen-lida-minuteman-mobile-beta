@@ -4,6 +4,8 @@ import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import base64 from 'react-native-base64';
 import { API_KEY_1, API_KEY_2, API_KEY_3, API_KEY_4, API_KEY_5 } from '@env';
+import * as Sentry from '@sentry/react-native';
+import { insertApiErrorLog } from '../db';
 
 const ERROR_TYPES = {
      TIMEOUT: 'TIMEOUT_ERROR',
@@ -188,15 +190,6 @@ class ApiClient {
           return null;
      }
 
-     logResponse(method, endpoint, response, config = {}) {
-          logDebugMessage(`[API ${method}] ${endpoint}`);
-          logDebugMessage(JSON.stringify(response, null, 2));
-
-          if (!response.ok && config.customErrorMessage) {
-               logErrorMessage(config.customErrorMessage);
-          }
-     }
-
      async request(url, options = {}, config = {}) {
           let timeoutId;
 
@@ -267,7 +260,7 @@ class ApiClient {
                if (timeoutId) clearTimeout(timeoutId);
 
                let errorType = ERROR_TYPES.NETWORK;
-               let shouldLogout = error.shouldLogout || false;
+               let shouldLogout = error.shouldLogout || false; // we don't actually use this yet, but will be useful in the future
                let isSentryWorthy = true;
 
                if (error.name === 'AbortError') {
@@ -282,14 +275,29 @@ class ApiClient {
                     shouldLogout = true;
                } else if (error.type) {
                     errorType = error.type;
-                    isSentryWorthy = error.type !== ERROR_TYPES.PIN_CHANGED;
+                    isSentryWorthy = error.type !== ERROR_TYPES.INVALID_CREDENTIALS;
                }
 
-               const errorDetails = getErrorMessage({
-                    statusCode: error.status,
-                    problem: errorType,
-                    sendToSentry: isSentryWorthy,
-               });
+               const errorDetails = {
+                    method: options.method,
+                    endpoint: url,
+                    status: error.status || null,
+                    problem: error.type || 'NETWORK_ERROR',
+                    message: error.message || 'Unknown error',
+                    requestUrl: url,
+                    requestParams: options.params || null,
+                    requestBody: options.body || null,
+                    responseBody: error.response?.data || null,
+               };
+
+               if (!__DEV__ || isSentryWorthy) {
+                    Sentry.captureException(error, {
+                         level: error.status >= 500 ? 'error' : 'warning',
+                         extra: errorDetails,
+                    });
+               }
+
+               await insertApiErrorLog(errorDetails);
 
                if (config.customErrorMessage) {
                     logErrorMessage(config.customErrorMessage);
