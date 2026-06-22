@@ -29,6 +29,9 @@
       }
     },
     "production": {
+      "android": {
+        "gradleCommand": ":app:bundleRelease -x lintVitalAnalyzeRelease"
+      },
       "ios": {
         "resourceClass": "m-medium"
       }
