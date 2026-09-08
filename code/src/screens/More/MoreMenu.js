@@ -1,6 +1,6 @@
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import _ from 'lodash';
 import moment from 'moment';
 import {
@@ -24,29 +24,29 @@ import {
      ModalContent,
      ModalHeader,
      ModalFooter,
-     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup, useToast
+     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback';
 import { AuthContext } from '../../context/AuthContext';
-import {
-     LanguageContext,
-     LibraryBranchContext,
-     LibrarySystemContext,
-     ThemeContext,
-} from '../../context/initialContext';
+
+import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useAppSettings, useLibrary, useLibraryMenu, useUpdateMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
-import { GLOBALS, LIBRARY } from '../../util/globals';
+import { getLibraryLinks } from '../../util/api/system';
+import { GLOBALS } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const MoreMenu = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { locations } = React.useContext(LibraryBranchContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { menu } = React.useContext(LibrarySystemContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const library = useLibrary();
+     const menu = useLibraryMenu();
+     const updateMenu = useUpdateMenu();
+     const { textColor, theme, colorMode } = useTheme();
 
      const { signOut } = React.useContext(AuthContext);
      const hasMenuItems = _.size(menu);
@@ -56,10 +56,39 @@ export const MoreMenu = () => {
      const [deleteResults, setDeleteResults] = React.useState('');
      const [deleting, setDeleting] = React.useState(false);
 
+     useFocusEffect(
+          React.useCallback(() => {
+               if (!library.baseUrl) return;
+               let cancelled = false;
+
+               (async () => {
+                    try {
+                         const data = await getLibraryLinks(library.baseUrl);
+                         if (cancelled) return;
+                         if (data?.ok) {
+                              const links = data.data.result?.items ?? [];
+                              await updateMenu(links);
+                              logDebugMessage('MoreMenu: refreshed library menu links');
+                         } else {
+                              logDebugMessage('MoreMenu: library menu refresh returned non-ok response');
+                         }
+                    } catch (error) {
+                         if (!cancelled) {
+                              logErrorMessage('MoreMenu: failed to refresh library menu links');
+                              logErrorMessage(error);
+                         }
+                    }
+               })();
+
+               return () => {
+                    cancelled = true;
+               };
+          }, [library.baseUrl, updateMenu])
+     );
+
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: null,
-          });
+               headerLeft: null });
      }, [navigation]);
 
      const initiateDeleteAspenUser = async () => {
@@ -85,40 +114,39 @@ export const MoreMenu = () => {
                          <MyLibrary />
                          <Divider />
 
-                         <VStack divider={<Divider />} space="md">
-                              {hasMenuItems > 0 ? (
-                                   Object.keys(menu).map((item) => (
-                                        <MenuLink key={item} links={menu[item]} />
-                                   ))
-                              ) : null}
+                         <VStack space="md">
+                              {hasMenuItems > 0 ? Object.keys(menu).map((item) => <MenuLink key={item} links={menu[item]} />) : null}
+                              {hasMenuItems > 0 ? <Divider /> : null}
                               <VStack space="md">
                                    <ViewAllLocations />
                                    <Settings />
                                    <PrivacyPolicy />
                                    {library.catalogRegistrationCapabilities?.enableSelfRegistration === '1' && library.catalogRegistrationCapabilities.enableSelfRegistrationInApp === '1' ? (
-                                   <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
-                                        <HStack space="sm" alignItems="center">
-                                             <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)}/>
-                                             <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Text>
-                                        </HStack>
-                                   </Pressable>
+                                        <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
+                                             <HStack space="sm" alignItems="center">
+                                                  <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)} />
+                                                  <Text color={textColor} fontWeight="$medium">
+                                                       {getTermFromDictionary(language, 'delete_account')}
+                                                  </Text>
+                                             </HStack>
+                                        </Pressable>
                                    ) : null}
                               </VStack>
                          </VStack>
                     </VStack>
                     <Modal isOpen={showDeleteConfirmationModal} onClose={toggleDeleteConfirmationModal}>
                          <ModalBackdrop />
-                         <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <ModalHeader>
-                                   <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
+                                   <Heading size="md" color={textColor}>
+                                        {getTermFromDictionary(language, 'delete_account')}
+                                   </Heading>
                                    <ModalCloseButton p="$3" onPress={toggleDeleteConfirmationModal}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
                               <ModalBody>
-                                   <Text color={textColor}>
-                                        {getTermFromDictionary(language, 'confirm_delete_account_message')}
-                                   </Text>
+                                   <Text color={textColor}>{getTermFromDictionary(language, 'confirm_delete_account_message')}</Text>
                               </ModalBody>
                               <ModalFooter>
                                    <ButtonGroup>
@@ -127,14 +155,14 @@ export const MoreMenu = () => {
                                         </Button>
                                         <Button
                                              bgColor={theme.tokens.colors.primary['500']}
-                                            isLoading={deleting}
-                                            isLoadingText={getTermFromDictionary(language, 'deleting', true)}
-                                            onPress={async () => {
-                                                 await initiateDeleteAspenUser().then(() => {
-                                                      setShowDeleteConfirmationModal(false);
-                                                      setShowDeleteResultsModal(true);
-                                                 });
-                                            }}>
+                                             isLoading={deleting}
+                                             isLoadingText={getTermFromDictionary(language, 'deleting', true)}
+                                             onPress={async () => {
+                                                  await initiateDeleteAspenUser().then(() => {
+                                                       setShowDeleteConfirmationModal(false);
+                                                       setShowDeleteResultsModal(true);
+                                                  });
+                                             }}>
                                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'confirm_delete_account')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
@@ -142,32 +170,27 @@ export const MoreMenu = () => {
                          </ModalContent>
                     </Modal>
                     <Modal isOpen={showDeleteResultsModal}>
-                         <ModalBackdrop/>
-                         <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalBackdrop />
+                         <ModalContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <ModalHeader>
-                                   <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
+                                   <Heading size="md" color={textColor}>
+                                        {getTermFromDictionary(language, 'delete_account')}
+                                   </Heading>
                                    <ModalCloseButton p="$3" onPress={signOut}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
-                              <ModalBody>
-                                   {deleteResults?.message ? (
-                                       <Text color={textColor}>{deleteResults.message}</Text>
-                                   ) : (
-                                       <Text color={textColor}>{getTermFromDictionary(language, 'error_deleting_account')}</Text>
-                                   )}
-                              </ModalBody>
+                              <ModalBody>{deleteResults?.message ? <Text color={textColor}>{deleteResults.message}</Text> : <Text color={textColor}>{getTermFromDictionary(language, 'error_deleting_account')}</Text>}</ModalBody>
                               <ModalFooter>
-                                        {deleteResults.success === true ? (
-                                            <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut}>
-                                                 <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
-                                            </Button>
-                                        ) : (
-                                            <Button bgColor={theme.tokens.colors.primary['500']}  variant="primary" onPress={toggleDeleteResultsModal}>
-                                                 <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
-                                            </Button>
-                                        )}
-
+                                   {deleteResults.success === true ? (
+                                        <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut}>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        </Button>
+                                   ) : (
+                                        <Button bgColor={theme.tokens.colors.primary['500']} variant="primary" onPress={toggleDeleteResultsModal}>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        </Button>
+                                   )}
                               </ModalFooter>
                          </ModalContent>
                     </Modal>
@@ -177,15 +200,15 @@ export const MoreMenu = () => {
 };
 
 const MyLibrary = () => {
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const location = useLibraryLocation();
+     const language = useActiveLanguage();
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
 
      let isClosedToday = false;
      let hoursLabel = '';
-     if (location.hours) {
+     if (location?.hours) {
           const day = moment().day();
           if (_.find(location.hours, _.matchesProperty('day', day))) {
                let todaysHours = _.filter(location.hours, { day: day });
@@ -228,9 +251,9 @@ const MyLibrary = () => {
                          <Text bold fontSize="$md" color={theme['tokens']['colors']['primary']['400-text']}>
                               {library.displayName}
                          </Text>
-                         {library.displayName !== location.displayName ? (
+                         {library.displayName !== location?.displayName ? (
                               <Text bold color={theme['tokens']['colors']['primary']['400-text']}>
-                                   {location.displayName}
+                                   {location?.displayName}
                               </Text>
                          ) : null}
                          {hoursLabel ? <Text color={theme['tokens']['colors']['primary']['400-text']}>{hoursLabel}</Text> : null}
@@ -242,11 +265,11 @@ const MyLibrary = () => {
 };
 
 const ViewAllLocations = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { location } = React.useContext(LibraryBranchContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const locations = useAvailableLocations();
+     const { textColor, theme, colorMode } = useTheme();
 
-     if (_.size(location) > 1) {
+     if (_.size(locations) > 1) {
           return (
                <Pressable px="$2" py="$3" onPress={() => navigate('AllLocations')}>
                     <HStack space="sm" alignItems="center">
@@ -261,8 +284,8 @@ const ViewAllLocations = () => {
 };
 
 const Settings = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor, theme, colorMode } = useTheme();
 
      return (
           <Pressable px="$2" py="$3" onPress={() => navigate('MyPreferences')}>
@@ -275,8 +298,8 @@ const Settings = () => {
 };
 
 const DeleteAccount = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor, theme, colorMode } = useTheme();
 
      return (
          <Pressable px="$2" py="$3" onPress={() => navigate('MyPreferences')}>
@@ -289,10 +312,10 @@ const DeleteAccount = () => {
 };
 
 const PrivacyPolicy = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const appSettings = useAppSettings();
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const toast = useToast();
+     const { textColor, theme, colorMode } = useTheme();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -301,11 +324,10 @@ const PrivacyPolicy = () => {
           showTitle: false,
           toolbarColor: backgroundColor,
           controlsColor: textColor,
-          secondaryToolbarColor: backgroundColor,
-     };
+          secondaryToolbarColor: backgroundColor };
 
      const openURL = async () => {
-          const url = appendQuery(LIBRARY.appSettings?.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
+          const url = appendQuery(appSettings.settings.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
           logInfoMessage(url);
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
@@ -337,7 +359,7 @@ const PrivacyPolicy = () => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -354,7 +376,7 @@ const PrivacyPolicy = () => {
 };
 
 const MenuLink = (payload) => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const categories = payload.links;
      let hasMultiple = false;
      if (_.size(categories) > 1) {
@@ -363,8 +385,7 @@ const MenuLink = (payload) => {
      let categoryLabel = _.sample(categories);
      categoryLabel = categoryLabel.category;
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const toast = useToast();
+     const { textColor, theme, colorMode } = useTheme();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -373,8 +394,7 @@ const MenuLink = (payload) => {
           showTitle: false,
           toolbarColor: backgroundColor,
           controlsColor: textColor,
-          secondaryToolbarColor: backgroundColor,
-     };
+          secondaryToolbarColor: backgroundColor };
 
      const [expanded, setExpanded] = React.useState(false);
 
@@ -392,8 +412,7 @@ const MenuLink = (payload) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           let formattedUrl = url;
           if (!isValidHttpUrl(url)) {
@@ -437,7 +456,7 @@ const MenuLink = (payload) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });

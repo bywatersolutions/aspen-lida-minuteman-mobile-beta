@@ -4,12 +4,14 @@ import { Box, FlatList, Heading, HStack, Text, VStack } from '@gluestack-ui/them
 import React from 'react';
 
 // custom components and helper files
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const Hours = (data) => {
-     const { language } = React.useContext(LanguageContext);
-     const { textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor } = useTheme();
      const location = data.data;
 
      /* location.hours */
@@ -18,7 +20,7 @@ const Hours = (data) => {
           if (_.isArrayLikeObject(location.hours)) {
                return (
                     <Box>
-                         <Heading color={textColor} mb={2} mx="$2">{getTermFromDictionary(language, 'library_hours')}</Heading>
+                         <Heading color={textColor} mb="$2" mx="$2">{getTermFromDictionary(language, 'library_hours')}</Heading>
                          <FlatList data={location.hours} renderItem={({ item }) => <Day hours={item} textColor={textColor} />} />
                     </Box>
                );
@@ -29,7 +31,7 @@ const Hours = (data) => {
 };
 
 const Day = (data) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { hours, textColor } = data;
 
      function formatTime(time) {
@@ -39,14 +41,14 @@ const Day = (data) => {
      }
 
      return (
-          <VStack mb={2} mx="$4">
+          <VStack mb="$2" mx="$4">
                <HStack justifyContent="space-between">
-                    <Text color={textColor} bold>{hours.dayName}</Text>
+                    <Text color={textColor} bold>
+                         {hours.dayName}
+                    </Text>
                     {!hours.isClosed ? (
                          <Text color={textColor}>
-                              <Text color={textColor}>{formatTime(hours.open)}</Text>
-                              <Text color={textColor}> - </Text>
-                              <Text color={textColor}>{formatTime(hours.close)}</Text>
+                              {formatTime(hours.open)} - {formatTime(hours.close)}
                          </Text>
                     ) : (
                          <Text color={textColor}>{getTermFromDictionary(language, 'location_closed')}</Text>

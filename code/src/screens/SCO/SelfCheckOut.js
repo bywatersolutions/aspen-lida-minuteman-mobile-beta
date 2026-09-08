@@ -1,12 +1,8 @@
 import React, {useState} from 'react';
-import {
-     CheckoutsContext,
-     LanguageContext,
-     LibraryBranchContext,
-     LibrarySystemContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+import { CheckoutsContext } from '../../context/initialContext';
+import { useLibraryLocation, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../../hooks/useUserData';
 import { Box, Button, ButtonGroup, ButtonIcon, ButtonText, Text, Heading, Center, HStack, VStack, Icon, FlatList, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, CloseIcon, ModalCloseButton, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Alert, AlertText } from '@gluestack-ui/themed';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -14,20 +10,27 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { Ionicons } from '@expo/vector-icons';
 import _ from 'lodash';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { checkoutItem } from '../../util/api/user';
+import { checkoutItem, refreshProfile } from '../../util/api/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const SelfCheckOut = () => {
      const queryClient = useQueryClient();
      const navigation = useNavigation();
      const route = useRoute();
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location, selfCheckSettings } = React.useContext(LibraryBranchContext);
-     const { language } = React.useContext(LanguageContext);
-     const { user, cards, accounts } = React.useContext(UserContext);
+     const library = useLibrary();
+     const location = useLibraryLocation();
+     const selfCheckSettings = useSelfCheckSettings();
+     const language = useActiveLanguage();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: cards } = useCards();
+     const { data: accounts } = useAccounts();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
-     const {textColor, colorMode, theme} = React.useContext(ThemeContext);
+     const {textColor, colorMode, theme} = useTheme();
 
      const passedItems = route.params?.items ?? [];
      const [items, setItems] = React.useState(passedItems);
@@ -73,6 +76,13 @@ export const SelfCheckOut = () => {
      let checkoutErrorMessageBody = null;
      let checkoutErrorMessageTitle = null;
 
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
+
      if (_.find(cards, ['ils_barcode', activeAccount])) {
           activeAccount = _.find(cards, ['ils_barcode', activeAccount]);
      } else if (_.find(cards, ['cat_username', activeAccount])) {
@@ -81,8 +91,7 @@ export const SelfCheckOut = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
@@ -131,12 +140,11 @@ export const SelfCheckOut = () => {
                                         sessionCheckouts = updatedSession;
 
                                         queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
-                                        queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                        refreshAndSaveUserProfile();
                                         /*useQuery(['checkouts', user.id, library.baseUrl, language], () => getPatronCheckedOutItems('all', library.baseUrl, true, language), {
                                              onSuccess: (data) => {
                                                   updateCheckouts(data);
-                                             },
-                                        });*/
+                                             } });*/
 
                                         setMustConfirm(false); //reset in case multi-checkout session
                                         if (result.completionMessage && (result.mustConfirmCompletionMessage === 1 || result.mustConfirmCompletionMessage === true || result.mustConfirmCompletionMessage === '1' || result.mustConfirmCompletionMessage === 'true')) {
@@ -161,8 +169,7 @@ export const SelfCheckOut = () => {
      const openScanner = async () => {
           barcode = null;
           navigateStack('SelfCheckTab', 'SelfCheckOutScanner', {
-               activeAccount,
-          });
+               activeAccount });
      };
 
      const finishSession = () => {
@@ -174,13 +181,11 @@ export const SelfCheckOut = () => {
           setShowFinishModal(false);
           if (_.size(accounts) >= 1) {
                navigation.replace('StartCheckOutSession', {
-                    startNew: true,
-               });
+                    startNew: true });
           } else {
                navigation.replace('SelfCheckOut', {
                     startNew: true,
-                    barcode: null,
-               });
+                    barcode: null });
           }
      };
 
@@ -285,9 +290,9 @@ export const SelfCheckOut = () => {
                                         </ButtonGroup>
                                    </Center>
                               </FormControl>
-                              <Modal isOpen={showModal} onClose={toggle} size="md" avoidKeyboard>
+                              <Modal isOpen={showModal} onClose={toggle} size="md" avoidKeyboard useRNModal={true}>
                                    <ModalBackdrop />
-                                   <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                                   <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                                         <ModalHeader>
                                              <Heading size="md" color={textColor}>
                                                   {getTermFromDictionary(language, 'add_new_item')}
@@ -298,7 +303,7 @@ export const SelfCheckOut = () => {
                                         </ModalHeader>
                                         <ModalBody>
                                              <FormControl pb="$5">
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
                                                        <InputField color={textColor} keyboardType={keyboardType === 1 ? 'number-pad' : 'default'} variant="outline" autoCapitalize="none" placeholder={getTermFromDictionary(language, 'enter_barcode')} size="$lg" defaultValue={newBarcode} onChangeText={(text) => setNewBarcode(text)} />
                                                   </Input>
                                              </FormControl>
@@ -347,9 +352,9 @@ export const SelfCheckOut = () => {
                     </Button>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRefConfirm} isOpen={openConfirmAlert} onClose={onCloseConfirm} closeOnOverlayClick={false}>
+                    <AlertDialog leastDestructiveRef={cancelRefConfirm} isOpen={openConfirmAlert} onClose={onCloseConfirm} closeOnOverlayClick={false} useRNModal={true}>
                          <AlertDialogBackdrop />
-                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <AlertDialogHeader>
                                    <Heading color={textColor}>{getTermFromDictionary(language, 'notice_about_item')}</Heading>
                               </AlertDialogHeader>
@@ -367,9 +372,9 @@ export const SelfCheckOut = () => {
                     </AlertDialog>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} useRNModal={true}>
                          <AlertDialogBackdrop />
-                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <AlertDialogHeader>
                                    <Heading size="md" color={textColor}>
                                         {errorTitle}
@@ -383,7 +388,7 @@ export const SelfCheckOut = () => {
                                                   <FormControlLabel>
                                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'does_barcode_match_item')}</FormControlLabelText>
                                                   </FormControlLabel>
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
                                                        <InputField id="barcode" autoCapitalize="none" autoCorrect={false} onChangeText={(text) => setTempBarcode(text)} defaultValue={tempBarcode} color={textColor} />
                                                   </Input>
                                              </FormControl>
@@ -416,9 +421,9 @@ export const SelfCheckOut = () => {
                     </AlertDialog>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={showFinishModal} onClose={() => startNewSession()} size="lg">
+                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={showFinishModal} onClose={() => startNewSession()} size="lg" useRNModal={true}>
                          <AlertDialogBackdrop />
-                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <AlertDialogHeader>
                                    <Heading color={textColor}>{getTermFromDictionary(language, 'finish_checkout_session')}</Heading>
                                    <Button variant="link" onPress={() => setShowFinishModal(false)} position="absolute" right="$3" top="$1" bg="transparent">

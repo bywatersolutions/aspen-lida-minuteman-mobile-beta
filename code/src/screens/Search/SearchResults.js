@@ -14,9 +14,9 @@ import {
      Badge,
      BadgeText,
      VStack,
-     Input, InputSlot, InputIcon, InputField, FormControl, useToast
+     Input, InputSlot, InputIcon, InputField, FormControl
 } from '@gluestack-ui/themed';
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
@@ -26,12 +26,14 @@ import moment from 'moment';
 
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { loadError, popToast } from '../../components/loadError';
+import { loadError } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
+import { useLibraryScope, useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { GLOBALS, SearchGlobal } from '../../util/globals';
@@ -42,6 +44,9 @@ import { setDefaultFacets } from '../../util/api/searchHelper';
 import AddToList from './AddToList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/logging';
 import { createApiClient } from '../../util/api/apiFactory';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -50,11 +55,11 @@ export const SearchResults = () => {
      const route = useRoute();
      const [page, setPage] = React.useState(1);
      const [storedTerm, setStoredTerm] = React.useState(SearchGlobal.term);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { scope } = React.useContext(LibraryBranchContext);
-     const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+      const library = useLibrary();
+      const language = useActiveLanguage();
+      const scope = useLibraryScope();
+      const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
+     const { theme, textColor, colorMode } = useTheme();
      const url = library.baseUrl;
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
 
@@ -120,8 +125,7 @@ export const SearchResults = () => {
                               id: result.key,
                               title: getCleanTitle(result.title),
                               url: library.baseUrl,
-                              libraryContext: library,
-                         });
+                              libraryContext: library });
                     }
                }
           },
@@ -129,9 +133,26 @@ export const SearchResults = () => {
                logDebugMessage("Error searching");
                logErrorMessage(error);
           }
-     });
+      });
 
-     const Header = () => {
+      // When the filter modal closes, check if filters were updated and refetch
+      useFocusEffect(
+           React.useCallback(() => {
+                // Check if SearchGlobal has pending params that differ from current route params
+                if (SearchGlobal.pendingParams && !_.isEqual(SearchGlobal.pendingParams, params)) {
+                     logDebugMessage('Filters were updated in modal, invalidating query to refetch');
+                     // Invalidate the query to force a refetch
+                     queryClient.invalidateQueries({
+                          queryKey: ['searchResults', url, page, term, scope, params, type, id, language, currentIndex, currentSource],
+                          exact: false
+                     });
+                     // Reset pending params after handling
+                     SearchGlobal.pendingParams = [];
+                }
+           }, [queryClient, url, page, term, scope, params, type, id, language, currentIndex, currentSource])
+      );
+
+      const Header = () => {
           const num = _.toInteger(data?.totalResults);
           if (num > 0) {
                let label = num + ' ' + getTermFromDictionary(language, 'results');
@@ -213,7 +234,7 @@ export const SearchResults = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
@@ -229,12 +250,11 @@ export const SearchResults = () => {
 
 const DisplayResult = (data) => {
      const item = data.data;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const { currentSource } = React.useContext(SearchContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
-     const toast = useToast();
 
      const handlePressItem = () => {
           if (currentSource === 'events') {
@@ -253,16 +273,14 @@ const DisplayResult = (data) => {
                          id: item.key,
                          title: getCleanTitle(item.title),
                          url: library.baseUrl,
-                         source: eventSource,
-                    });
+                         source: eventSource });
                }
           } else {
                navigate('GroupedWorkScreen', {
                     id: item.key,
                     title: getCleanTitle(item.title),
                     url: library.baseUrl,
-                    libraryContext: library,
-               });
+                    libraryContext: library });
           }
      };
 
@@ -276,8 +294,8 @@ const DisplayResult = (data) => {
           }
 
           return (
-               <Badge key={n.key} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                    <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
+               <Badge key={n.key} borderRadius="$sm" borderColor={theme.tokens.colors.primary['400']} variant="outline" bg="transparent">
+                    <BadgeText textTransform="none" color={theme.tokens.colors.primary['400']} fontSize="$xs">
                          {n.name}
                     </BadgeText>
                </Badge>
@@ -291,8 +309,7 @@ const DisplayResult = (data) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
                     logDebugMessage(res);
@@ -321,7 +338,7 @@ const DisplayResult = (data) => {
                               logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -367,7 +384,7 @@ const DisplayResult = (data) => {
           let roomData = item?.room ?? null;
 
           return (
-               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? '$warmGray400' : '$warmGray600'} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                     <HStack space="md">
                          <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                               <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -377,7 +394,7 @@ const DisplayResult = (data) => {
                                         style={{
                                              width: '100%',
                                              height: '100%',
-                                             borderRadius: "$sm",
+                                             borderRadius: 4,
                                         }}
                                         placeholder={blurhash}
                                         transition={1000}
@@ -407,8 +424,8 @@ const DisplayResult = (data) => {
                               ) : null}
                               {registrationRequired ? (
                                    <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
-                                        <Badge key={0} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                                             <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
+                                        <Badge key={0} borderRadius="$sm" borderColor={theme.tokens.colors.secondary['400']} variant="outline" bg="transparent">
+                                             <BadgeText textTransform="none" color={theme.tokens.colors.secondary['400']} fontSize="$xs">
                                                   {getTermFromDictionary(language, 'registration_required')}
                                              </BadgeText>
                                         </Badge>
@@ -431,8 +448,7 @@ const DisplayResult = (data) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: 4 }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -442,13 +458,11 @@ const DisplayResult = (data) => {
                               <Center
                                    mt="$1"
                                    sx={{
-                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                   }}>
+                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                    <Badge
                                         size="$sm"
                                         sx={{
-                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                        }}>
+                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                         <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
                                              {item.language}
                                         </BadgeText>
@@ -476,9 +490,9 @@ const DisplayResult = (data) => {
 };
 
 const FilterBar = ({ navigation }) => {
-     const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const library = useLibrary();
+     const { theme, colorMode, textColor } = useTheme();
      const type = useRoute().params.type ?? 'catalog';
 
      if (navigation === undefined) {
@@ -487,14 +501,7 @@ const FilterBar = ({ navigation }) => {
      }
      if (type === 'catalog') {
           return (
-               <Box
-                    padding="$2"
-                    paddingBottom="$0"
-                    sx={{
-                         bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-                         borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600",
-                    }}
-                    flexWrap="nowrap">
+               <Box padding="$2" paddingBottom="$0" bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'} borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap">
                     <ScrollView horizontal>
                          <Button
                               size="sm"
@@ -512,7 +519,7 @@ const FilterBar = ({ navigation }) => {
                               <ButtonIcon color={theme.tokens.colors.primary['600-text']} as={SlidersHorizontalIcon} mr="$1" />
                               <ButtonText color={theme.tokens.colors.primary['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
                          </Button>
-                         <CreateFilterButton navigation={navigation}/>
+                         <CreateFilterButton navigation={navigation} />
                     </ScrollView>
                </Box>
           );
@@ -520,8 +527,8 @@ const FilterBar = ({ navigation }) => {
 };
 
 const SearchBox = ({term, navigation}) => {
-     const { language } = React.useContext(LanguageContext);
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { colorMode, textColor } = useTheme();
      const [searchTerm, setSearchTerm] = React.useState(term);
 
      const openScanner = async () => {
@@ -538,35 +545,32 @@ const SearchBox = ({term, navigation}) => {
      };
 
      return (
-         <Box padding="$2" sx={{
-              bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-              borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600",
-         }} borderBottomWidth="$1">
-              <FormControl pb="$5">
-                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                        <InputSlot>
-                             <InputIcon as={SearchIcon} ml="$2" color={textColor} />
-                        </InputSlot>
-                        <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={updateSearch} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
-                        {searchTerm ? (
-                             <InputSlot onPress={() => clearSearch()}>
-                                  <InputIcon as={XIcon} mr="$2" color={textColor} />
-                             </InputSlot>
-                        ) : null}
-                        <InputSlot onPress={() => openScanner()}>
-                             <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
-                        </InputSlot>
-                   </Input>
-              </FormControl>
-         </Box>
-     )
+          <Box padding="$2" bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'} borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} borderBottomWidth="$1">
+               <FormControl pb="$5">
+                    <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
+                         <InputSlot>
+                              <InputIcon as={SearchIcon} ml="$2" color={textColor} />
+                         </InputSlot>
+                         <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={updateSearch} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
+                         {searchTerm ? (
+                              <InputSlot onPress={() => clearSearch()}>
+                                   <InputIcon as={XIcon} mr="$2" color={textColor} />
+                              </InputSlot>
+                         ) : null}
+                         <InputSlot onPress={() => openScanner()}>
+                              <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
+                         </InputSlot>
+                    </Input>
+               </FormControl>
+          </Box>
+     );
 }
 
 const CreateFilterButtonDefaults = ({navigation}) => {
      const defaults = SearchGlobal.defaultFacets;
-     const { location } = React.useContext(LibraryBranchContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const location = useLibraryLocation();
+     const library = useLibrary();
+     const { theme, colorMode, textColor } = useTheme();
 
      const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];
      const libraryGroupedWorkDisplaySettings = library.groupedWorkDisplaySettings ?? [];
@@ -615,9 +619,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                    key={index}
                                    size="sm"
                                    variant="outline"
-                                   sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400",
-                                   }}
+                                   borderColor={colorMode === 'light' ? '$trueGray300' : '$warmGray400'}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -641,9 +643,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                               key={index}
                               size="sm"
                               variant="outline"
-                              sx={{
-                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$warmGray400",
-                              }}
+                              borderColor={colorMode === 'light' ? theme.tokens.colors.primary['400'] : '$warmGray400'}
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Facet',
@@ -667,14 +667,14 @@ const CreateFilterButtonDefaults = ({navigation}) => {
 
 const CreateFilterButton = ({navigation}) => {
      const { currentSource } = React.useContext(SearchContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const appliedFacets = SearchGlobal.appliedFilters;
      const sort = _.find(appliedFacets['Sort By'], {
           field: 'sort_by',
-          value: 'relevance',
-     });
+          value: 'relevance' });
 
      if ((_.size(appliedFacets) > 0 && _.size(sort) === 0) || (_.size(appliedFacets) >= 1 && _.size(sort) > 1) || (_.size(appliedFacets) >= 1 && currentSource === 'events')) {
+          console.log("using applied filters bar")
           return (
                <ButtonGroup space="sm" vertical>
                     {_.map(appliedFacets, function (item, index, collection) {
@@ -697,9 +697,7 @@ const CreateFilterButton = ({navigation}) => {
                                    variant="outline"
                                    size="sm"
                                    key={index}
-                                   sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400",
-                                   }}
+                                   borderColor={colorMode === 'light' ? '$trueGray300' : '$warmGray400'}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -730,8 +728,7 @@ async function fetchSearchResults(term, page, scope, url, type, id, language, in
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutFast,
-          language,
-     });
+          language });
 
      const params = {
           library: scope ?? null,
@@ -744,8 +741,7 @@ async function fetchSearchResults(term, page, scope, url, type, id, language, in
           includeSortList: true,
           source,
           searchIndex: index,
-          barcodeType,
-     };
+          barcodeType };
 
      logDebugMessage('fetchSearchResults: ' + SearchGlobal.appendedParams);
 
@@ -782,8 +778,7 @@ async function fetchSearchResults(term, page, scope, url, type, id, language, in
           index: data?.result?.searchIndex ?? 'Keyword',
           term,
           message: data.data?.message ?? null,
-          error: data.data?.error?.message ?? false,
-     };
+          error: data.data?.error?.message ?? false };
 }
 
 function getSortLabel(payload = '') {

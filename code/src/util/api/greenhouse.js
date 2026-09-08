@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { GLOBALS, LIBRARY, PATRON } from '../globals';
+import { GLOBALS, LIBRARY } from '../globals';
 import { createApiClient } from './apiFactory';
 import { Platform } from 'react-native';
 import { getAppSettings } from './system';
@@ -64,27 +64,26 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
 
 /**
  * Fetches nearby libraries from Greenhouse based on patron's location and release channel, and determines if the select library screen should be shown
- * @param {object} toast - The instance returned by useToast()
  * @returns {Promise<{success: boolean, libraries, shouldShowSelectLibrary: boolean}|{success: boolean, shouldShowSelectLibrary: boolean, libraries: *[]}>}
  */
-export async function fetchNearbyLibrariesFromGreenhouse(toast) {
+export async function fetchNearbyLibrariesFromGreenhouse() {
      logDebugMessage("Getting nearby libraries from the greenhouse");
      const { url, channel, method, isBranded } = resolveGreenhouseConfig();
+     let latitude = null;
+     let longitude = null;
 
-     if (PATRON.coords?.lat == null && PATRON.coords?.long == null) {
-          try {
-               PATRON.coords.lat = await SecureStore.getItemAsync('latitude');
-               PATRON.coords.long = await SecureStore.getItemAsync('longitude');
-          } catch (e) {
-               logDebugMessage(e);
-          }
+     try {
+          latitude = await SecureStore.getItemAsync('latitude');
+          longitude = await SecureStore.getItemAsync('longitude');
+     } catch (e) {
+          logDebugMessage(e);
      }
 
      const client = createApiClient({ url, timeout: GLOBALS.timeoutSlow });
 
      const response = await client.get(`/GreenhouseAPI?method=${method}`, {
-          latitude: PATRON.coords.lat,
-          longitude: PATRON.coords.long,
+          latitude,
+          longitude,
           release_channel: channel,
      });
 
@@ -103,7 +102,7 @@ export async function fetchNearbyLibrariesFromGreenhouse(toast) {
 
           if (isBranded) {
                logDebugMessage("Getting branded app settings");
-               await getAppSettings(toast, GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
+               await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
                logDebugMessage(LIBRARY.appSettings);
 
                const autoPickUserHomeLocation = LIBRARY.appSettings?.autoPickUserHomeLocation ?? false;

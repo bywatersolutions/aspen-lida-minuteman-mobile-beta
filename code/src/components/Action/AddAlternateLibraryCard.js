@@ -21,10 +21,11 @@ import {
      Input,
      InputField,
      InputSlot,
-     InputIcon,
-     useToast
+     InputIcon
 } from '@gluestack-ui/themed';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
 import { decodeHTML } from '../../helpers/helpers';
@@ -32,7 +33,10 @@ import { completeAction } from '../../util/api/userHelper';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import { EyeOff, Eye } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const AddAlternateLibraryCard = (props) => {
      const {
@@ -63,18 +67,19 @@ export const AddAlternateLibraryCard = (props) => {
           onHoldItemSelectClose,
           cancelHoldItemSelectRef,
           recordSource,
-          activeAccount,
-     } = props;
+          activeAccount } = props;
 
      let isPlacingHold = false;
      if (_.isObject(action)) {
           isPlacingHold = action.includes('hold');
      }
 
-     const { library } = React.useContext(LibrarySystemContext);
-     const { user, updateUser } = React.useContext(UserContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const queryClient = useQueryClient();
      const { width } = useWindowDimensions();
      const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
@@ -84,7 +89,6 @@ export const AddAlternateLibraryCard = (props) => {
 
      const [showPassword, setShowPassword] = React.useState(false);
      const toggleShowPassword = () => setShowPassword(!showPassword);
-     const toast = useToast();
 
      let cardLabel = getTermFromDictionary(language, 'alternate_library_card');
      let passwordLabel = getTermFromDictionary(language, 'password');
@@ -111,24 +115,20 @@ export const AddAlternateLibraryCard = (props) => {
 
      const source = {
           baseUrl: library.baseUrl,
-          html: formMessage,
-     };
+          html: formMessage };
 
      const tagsStyles = {
           body: {
-               color: textColor,
-          },
+               color: textColor },
           a: {
                color: textColor,
-               textDecorationColor: textColor,
-          },
-     };
+               textDecorationColor: textColor } };
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-          await refreshProfile(library.baseUrl).then((data) => {
+          await refreshProfile(library.baseUrl).then(async (data) => {
                if(data.ok) {
-                    updateUser(data.data.result.profile);
+                    await updateUserProfile(data.data.result.profile);
                } else {
                     logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                     logDebugMessage(data);
@@ -136,6 +136,13 @@ export const AddAlternateLibraryCard = (props) => {
                }
           });
      };
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      return (
           <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
@@ -193,14 +200,14 @@ export const AddAlternateLibraryCard = (props) => {
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);
-                                        await completeAction(toast, id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                        await completeAction(id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
                                              logDebugMessage("Completed Action after add alternate library card");
                                              if (result) {
                                                   if (result.success === true || result.success === 'true') {
                                                        queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                        queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+                                                       await refreshAndSaveUserProfile();
                                                   }
 
                                                   if (result?.confirmationNeeded && result.confirmationNeeded === true) {
@@ -210,8 +217,7 @@ export const AddAlternateLibraryCard = (props) => {
                                                             title: result.title,
                                                             confirmationNeeded: result.confirmationNeeded ?? false,
                                                             confirmationId: result.confirmationId ?? null,
-                                                            recordId: id ?? null,
-                                                       };
+                                                            recordId: id ?? null };
                                                        tmp = _.merge(obj, tmp);
                                                        setHoldConfirmationResponse(tmp);
                                                   }
@@ -224,8 +230,7 @@ export const AddAlternateLibraryCard = (props) => {
                                                             patronId: activeAccount,
                                                             pickupLocation: location,
                                                             bibId: id ?? null,
-                                                            items: result.items ?? [],
-                                                       };
+                                                            items: result.items ?? [] };
 
                                                        tmp = _.merge(obj, tmp);
                                                        setHoldSelectItemResponse(tmp);

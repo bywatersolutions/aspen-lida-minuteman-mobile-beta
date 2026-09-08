@@ -1,24 +1,23 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken, useToast} from '@gluestack-ui/themed';
-import { useColorModeValue } from '../../themes/theme';
+import * as SecureStore from 'expo-secure-store';
+import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken} from '@gluestack-ui/themed';
+import { useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
-import { popToast } from '../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { popToast } from '../../components/feedback';
+
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 // custom components and helper files
-import { PATRON } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const ContactButtons = (data) => {
-     const { library } = React.useContext(LibrarySystemContext);
      const location = data.data;
-     const { language } = React.useContext(LanguageContext);
-     const { textColor: themeTextColor, colorMode } = React.useContext(ThemeContext);
-     const toast = useToast();
+     const language = useActiveLanguage();
+     const { textColor: themeTextColor, colorMode, theme } = useTheme();
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -44,8 +43,7 @@ const ContactButtons = (data) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           if (location.homeLink === '/') {
                await WebBrowser.openBrowserAsync(location.baseUrl, browserParams)
@@ -74,10 +72,10 @@ const ContactButtons = (data) => {
                                         });
                               } catch (error) {
                                    logDebugMessage('Really borked.');
-                                   logError(error);
+                                   logErrorMessage(error);
                               }
                          } else {
-                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                               logErrorMessage(err);
                          }
                     });
@@ -111,7 +109,7 @@ const ContactButtons = (data) => {
                                    logErrorMessage(error);
                               }
                          } else {
-                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                               logErrorMessage(err);
                          }
                     });
@@ -120,31 +118,32 @@ const ContactButtons = (data) => {
 
      const getDirections = async () => {
           /* location.latitude & location.longitude */
-          if (PATRON.coords.lat && PATRON.coords.long && PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
+          const sourceLatitude = await SecureStore.getItemAsync('latitude');
+          const sourceLongitude = await SecureStore.getItemAsync('longitude');
+          if (sourceLatitude && sourceLongitude && sourceLatitude !== '0' && sourceLongitude !== '0') {
                showLocation({
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    sourceLatitude: PATRON.coords.lat,
-                    sourceLongitude: PATRON.coords.long,
-                    googleForceLatLon: true,
-               });
+                    sourceLatitude,
+                    sourceLongitude,
+                    googleForceLatLon: true });
           } else {
                showLocation({
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    googleForceLatLon: true,
-               });
+                    googleForceLatLon: true });
           }
      };
 
      if (location.phone || location.email || location.homeLink || location.latitude !== 0) {
           return (
-               <Box mb={4}>
+               <Box mb="$4">
                     <ButtonGroup flexWrap="wrap" size="sm" justifyContent="space-between">
                          {location.phone ? (
                               <Button
                                    variant="outline"
                                    width="23%"
+                                   borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray200'}
                                    onPress={() => callLibrary()}
                                    style={{
                                         flexDirection: 'column',
@@ -152,18 +151,20 @@ const ContactButtons = (data) => {
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="call" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
+                                        <Icon as={MaterialIcons} name="call" size="md" color={colorMode === 'light' ? '$coolGray600' : '$warmGray200'} />
                                    </Center>
-                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'call_the_library')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>
+                                        {getTermFromDictionary(language, 'call_the_library')}
+                                   </ButtonText>
                               </Button>
                          ) : null}
                          {location.email ? (
                               <Button
                                    variant="outline"
                                    width="23%"
+                                   borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray200'}
                                    onPress={() => emailLibrary()}
                                    style={{
                                         flexDirection: 'column',
@@ -171,12 +172,13 @@ const ContactButtons = (data) => {
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="email" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
+                                        <Icon as={MaterialIcons} name="email" size="md" color={colorMode === 'light' ? '$coolGray600' : '$warmGray200'} />
                                    </Center>
-                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'email_a_librarian')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>
+                                        {getTermFromDictionary(language, 'email_a_librarian')}
+                                   </ButtonText>
                               </Button>
                          ) : null}
                          {location.latitude !== 0 ? (
@@ -184,18 +186,20 @@ const ContactButtons = (data) => {
                                    variant="outline"
                                    width="23%"
                                    onPress={() => getDirections()}
+                                   borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray200'}
                                    style={{
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="map" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
+                                        <Icon as={MaterialIcons} name="map" size="md" color={colorMode === 'light' ? '$coolGray600' : '$warmGray200'} />
                                    </Center>
-                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'get_directions')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>
+                                        {getTermFromDictionary(language, 'get_directions')}
+                                   </ButtonText>
                               </Button>
                          ) : null}
                          {location.homeLink ? (
@@ -203,18 +207,20 @@ const ContactButtons = (data) => {
                                    variant="outline"
                                    width="23%"
                                    onPress={() => visitWebsite()}
+                                   borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray200'}
                                    style={{
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="home" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
+                                        <Icon as={MaterialIcons} name="home" size="md" color={colorMode === 'light' ? '$coolGray600' : '$warmGray200'} />
                                    </Center>
-                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'visit_our_website')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>
+                                        {getTermFromDictionary(language, 'visit_our_website')}
+                                   </ButtonText>
                               </Button>
                          ) : null}
                     </ButtonGroup>

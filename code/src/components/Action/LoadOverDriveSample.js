@@ -1,17 +1,20 @@
 import React from 'react';
-import { ButtonSpinner, Button, ButtonText, useToast } from '@gluestack-ui/themed';
+import { ButtonSpinner, Button, ButtonText } from '@gluestack-ui/themed';
 
 // custom components and helper files
-import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+
+import { useUserState } from '../../hooks/useUserData';
 import { completeAction } from '../../util/api/userHelper';
 import {logDebugMessage} from "../../util/logging";
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useTheme } from '../../themes/theme';
 
 export const LoadOverDriveSample = (props) => {
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const library = useLibrary();
      const [loading, setLoading] = React.useState(false);
-     const { theme } = React.useContext(ThemeContext);
-     const toast = useToast();
+     const { theme } = useTheme();
 
      logDebugMessage("Showing overdrive sample, properties are");
      logDebugMessage(props);
@@ -27,7 +30,7 @@ export const LoadOverDriveSample = (props) => {
                borderColor={theme.tokens.colors.primary['500']}
                onPress={() => {
                     setLoading(true);
-                    completeAction(toast, props.id, props.type, user.id, props.formatId, props.sampleNumber, '', '', '', library.baseUrl, '', '', '', '').then((r) => {
+                    completeAction(props.id, props.type, user.id, props.formatId, props.sampleNumber, '', '', '', library?.baseUrl ?? '', '', '', '', '').then((r) => {
                          setLoading(false);
                     });
                }}>

@@ -1,15 +1,18 @@
-import { Box, Pressable, VStack, Text, useToast } from '@gluestack-ui/themed';
+import { Box, Pressable, VStack, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 
-import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import * as WebBrowser from 'expo-web-browser';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const HomeScreenLinkGrid = ({links}) => {
      const { width } = Dimensions.get('window');
@@ -45,13 +48,14 @@ const HomeScreenLinkGrid = ({links}) => {
 }
 
 const Link = ({link}) => {
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const { theme, textColor, colorMode } = useTheme();
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const { updateCurrentIndex } = React.useContext(SearchContext);
-     const toast = useToast();
 
      const navigation = useNavigation();
+
+     const iconColor = colorMode === 'light' ? '#4b5563' : '#d1d5db';
 
      const handleOpenLink = () => {
           // Open external link in web browser based on link.linkUrl
@@ -63,7 +67,7 @@ const Link = ({link}) => {
                }
           } catch (e) {
                logErrorMessage('Error opening link: ' + e);
-               popAlert(toast, getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
+               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
           }
      }
 
@@ -116,22 +120,19 @@ const Link = ({link}) => {
                                    author: 'SearchByAuthor',
                                    list: 'SearchByList',
                                    grouped_work: 'GroupedWorkScreen',
-                                   search: 'SearchResults',
-                              };
+                                   search: 'SearchResults' };
 
                               if (searchScreenMap[segments[1]]) {
                                    if(segments[1] === 'browse_category' || segments[1] === 'list' || segments[1] === 'grouped_work') {
                                         logDebugMessage(searchScreenMap[segments[1]]);
                                         navigation.navigate('BrowseTab', {
                                              screen: searchScreenMap[segments[1]],
-                                             params: link.deepLinkId ? { id: link.deepLinkId, title: link.title } : {},
-                                        });
+                                             params: link.deepLinkId ? { id: link.deepLinkId, title: link.title } : {} });
                                    } else if(segments[1] === 'author') {
                                         updateCurrentIndex('Author');
                                         navigation.navigate('BrowseTab', {
                                              screen: 'SearchResults',
-                                             params: link.deepLinkId ? { term: link.deepLinkId, title: link.deepLinkId } : {},
-                                        });
+                                             params: link.deepLinkId ? { term: link.deepLinkId, title: link.deepLinkId } : {} });
 
                                    }
                               }
@@ -146,7 +147,7 @@ const Link = ({link}) => {
                }
           } catch (e) {
                logErrorMessage('Navigation error: ' + e.message);
-               popAlert(toast, getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
+               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
           }
      }
 
@@ -165,7 +166,7 @@ const Link = ({link}) => {
                          <MaterialIcons
                               name={link?.materialIcon?.replace(/_/g, '-') || 'link'}
                               size={52}
-                              color={textColor}
+                              color={iconColor}
                               style={{ marginBottom: 8 }}
                          />
                     )}
