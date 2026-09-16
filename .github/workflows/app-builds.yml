@@ -188,7 +188,7 @@ jobs:
       - name: 📱 Build App for ${{ matrix.platform }}
         run: |
           export NODE_OPTIONS="--openssl-legacy-provider --max_old_space_size=4096"
-          npx eas-cli build --platform ${{ matrix.platform }} --profile production --local --refresh-ad-hoc-provisioning-profile --non-interactive --output=${{ matrix.platform == 'ios' && './app-prod.ipa' || './app-prod.aab' }}
+          npx eas-cli build --platform ${{ matrix.platform }} --profile production --local --non-interactive --output=${{ matrix.platform == 'ios' && './app-prod.ipa' || './app-prod.aab' }}
         env:
           NODE_ENV: production
         working-directory: ./code
