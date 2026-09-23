@@ -80,6 +80,7 @@ module.exports = () => {
          owner: "bywater-solutions",
          platforms: ['ios', 'android'],
          version: version['version'],
+         newArchEnabled: false,
          sdkVersion: '55.0.0',
          userInterfaceStyle: 'automatic',
          orientation: 'default',
