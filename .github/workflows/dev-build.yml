@@ -1,0 +1,219 @@
+name: Dev Build
+
+on:
+# changes to deploy/build.json on main branch
+  push:
+    branches: [main]
+    paths:
+      - "deploy/build.json"
+# manual execution
+  workflow_dispatch:
+
+env:
+  API_KEY_1: ${{ secrets.API_KEY_1 }}
+  API_KEY_2: ${{ secrets.API_KEY_2 }}
+  API_KEY_3: ${{ secrets.API_KEY_3 }}
+  API_KEY_4: ${{ secrets.API_KEY_4 }}
+  API_KEY_5: ${{ secrets.API_KEY_5 }}
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+  EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_PASSWORD }}
+  EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_TEAM_ID }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+  GOOGLE_API_KEY_ANDROID: ${{ secrets.GOOGLE_API_KEY_ANDROID }}
+  GOOGLE_API_KEY_APPLE: ${{ secrets.GOOGLE_API_KEY_APPLE }}
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  CURL_HOME: /tmp/.curl
+  EXTRA_HEADERS: ${{ secrets.EXTRA_HEADERS }}
+
+jobs:
+  check-skip:
+    runs-on: ubuntu-latest
+    if: "github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Skip CI check
+        run: echo "Proceeding with workflow"
+
+  validate-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      secrets_ok: ${{ steps.check.outputs.secrets_ok }}
+    steps:
+      - name: 🔐 Validate required secrets
+        id: check
+        env:
+          API_KEY_1: ${{ secrets.API_KEY_1 }}
+          API_KEY_2: ${{ secrets.API_KEY_2 }}
+          API_KEY_3: ${{ secrets.API_KEY_3 }}
+          API_KEY_4: ${{ secrets.API_KEY_4 }}
+          API_KEY_5: ${{ secrets.API_KEY_5 }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+          EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_PASSWORD }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_TEAM_ID }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          GOOGLE_API_KEY_ANDROID: ${{ secrets.GOOGLE_API_KEY_ANDROID }}
+          GOOGLE_API_KEY_APPLE: ${{ secrets.GOOGLE_API_KEY_APPLE }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          missing=0
+          check_secret () {
+            name=$1
+            value=$2
+
+            if [ -z "$value" ]; then
+              echo "::warning title=Missing Secret::$name is not set"
+              missing=1
+            fi
+          }
+          check_secret "API_KEY_1" "$API_KEY_1"
+          check_secret "API_KEY_2" "$API_KEY_2"
+          check_secret "API_KEY_3" "$API_KEY_3"
+          check_secret "API_KEY_4" "$API_KEY_4"
+          check_secret "API_KEY_5" "$API_KEY_5"
+          check_secret "EXPO_TOKEN" "$EXPO_TOKEN"
+          check_secret "EXPO_APPLE_ID" "$EXPO_APPLE_ID"
+          check_secret "EXPO_APPLE_APP_SPECIFIC_PASSWORD" "$EXPO_APPLE_APP_SPECIFIC_PASSWORD"
+          check_secret "EXPO_APPLE_TEAM_ID" "$EXPO_APPLE_TEAM_ID"
+          check_secret "SENTRY_AUTH_TOKEN" "$SENTRY_AUTH_TOKEN"
+          check_secret "GOOGLE_SERVICE_ACCOUNT" "$GOOGLE_SERVICE_ACCOUNT"
+          check_secret "GOOGLE_API_KEY_ANDROID" "$GOOGLE_API_KEY_ANDROID"
+          check_secret "GOOGLE_API_KEY_APPLE" "$GOOGLE_API_KEY_APPLE"
+          check_secret "SLACK_WEBHOOK" "$SLACK_WEBHOOK"
+
+          if [ "$missing" -eq 1 ]; then
+            echo "secrets_ok=false" >> $GITHUB_OUTPUT
+            echo "One or more required secrets are missing. Failing workflow."
+            exit 1
+          else
+            echo "secrets_ok=true" >> $GITHUB_OUTPUT
+            echo "All required secrets are present."
+          fi
+
+  build-and-deploy:
+    needs:
+      - check-skip
+      - validate-secrets
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [android, ios]
+    runs-on: ${{ matrix.platform == 'ios' && 'macos-26' || 'ubuntu-latest' }}
+    steps:
+      - name: 🏗  Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.LIDA_ACTIONS_TOKEN }}
+
+      - name: 🔒 Configure curl Cloudflare bypass header
+        run: |
+          mkdir -p "$CURL_HOME"
+          echo '-H "x-bws-external-service: ${{ secrets.CF_BYPASS_TOKEN }}"' > "$CURL_HOME/.curlrc"
+          echo 'verbose' >> "$CURL_HOME/.curlrc"
+          cat "$CURL_HOME/.curlrc"
+
+      - name: 📁 Copy over local deployment files
+        run: |
+          mkdir -p ./code
+          cp ./deploy/app.config.js ./code/app.config.js
+          cp ./deploy/eas.json  ./code/eas.json
+          cp ./deploy/.yarnrc.yml ./code/.yarnrc.yml
+          echo "deployment configs copied to code dir"
+
+      - name: 🏗  Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 🔧 Enable Corepack
+        run: corepack enable
+
+      - name: 📦 Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        working-directory: ./code
+
+      - name: 📦 Setup yarn cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: 📦 Install dependencies
+        run: |
+          yarn install
+          yarn add node-fetch@2
+        working-directory: ./code
+
+      - name: 📱 Setup EAS build cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.eas-build-local
+          key: ${{ runner.os }}-eas-build-local-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-eas-build-local-
+
+      - name: 🔄 Verify EAS CLI installation
+        run: |
+          echo "EAS CLI version:"
+          npx eas-cli --version
+
+      - name: 📋 Fix package.json main entry
+        run: |
+          # Check if jq is installed, if not install it
+          if ! command -v jq &> /dev/null; then
+            echo "Installing jq..."
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+          # Fix the main entry in package.json
+          if [ -f ./package.json ]; then
+            # Create a backup
+            cp package.json package.json.bak
+            # Update the package.json
+            jq '.main = "node_modules/expo/AppEntry.js"' package.json > package.json.tmp && mv package.json.tmp package.json
+            echo "Updated package.json main entry"
+            cat package.json | grep "main"
+          else
+            echo "package.json not found"
+            exit 1
+          fi
+        working-directory: ./code
+
+      - name: 📱 Build App for ${{ matrix.platform }}
+        run: |
+          export NODE_OPTIONS="--openssl-legacy-provider --max_old_space_size=4096"
+          npx eas-cli build --platform ${{ matrix.platform }} --profile development --local --non-interactive --output=${{ matrix.platform == 'ios' && './app-dev.ipa' || './app-dev.aab' }}
+        env:
+          NODE_ENV: production
+        working-directory: ./code
+
+      - name: 📦 Upload build artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build-${{ matrix.platform }}
+          path: |
+            ${{ matrix.platform == 'ios' && './code/app-dev.ipa' || './code/app-dev.aab' }}
+          retention-days: 60
+
+      # - name: 🚀 Submit to ${{matrix.platform }} Store
+      #   run: |
+      #     npx eas-cli submit -p ${{ matrix.platform }} --path ${{ matrix.platform == 'ios' && './app-prod.ipa' || './app-prod.aab' }} --non-interactive
+      #   working-directory: ./code
+
+  # notify-slack:
+  #   needs: build-and-deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: 📢 Notify build completion
+  #       if: always()
+  #       uses: rtCamp/action-slack-notify@v2
+  #       env:
+  #         SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
+  #         SLACK_TITLE: 'Build Results for ${{ github.repository }}'
+  #         SLACK_MESSAGE: ${{ job.status == 'success' && 'Builds completed successfully ✅' || 'Builds failed ❌' }}
