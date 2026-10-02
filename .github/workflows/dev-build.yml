@@ -3,9 +3,6 @@ name: Dev Build
 on:
 # changes to deploy/build.json on main branch
   push:
-    branches: [main]
-    paths:
-      - "deploy/build.json"
 # manual execution
   workflow_dispatch:
 
