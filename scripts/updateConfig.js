@@ -1,5 +1,14 @@
 const fs = require('fs');
 
+function getSentryUploadUrl(sentryDsn) {
+     try {
+          return new URL(sentryDsn).origin + '/';
+     } catch (e) {
+          console.log('⚠️  Could not derive Sentry upload url from DSN: ' + sentryDsn);
+          return undefined;
+     }
+}
+
 function getArgs() {
      const args = {};
      process.argv.slice(2, process.argv.length).forEach((arg) => {
@@ -183,6 +192,7 @@ const app_config = {
                     authToken: owner['sentryAuthToken'],
                     organization: owner['expoProjectOwner'],
                     project: app['sentryProject'],
+                    url: getSentryUploadUrl(app['sentryDsn']),
                },
           ],
           [

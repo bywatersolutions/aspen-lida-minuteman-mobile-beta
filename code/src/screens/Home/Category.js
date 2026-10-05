@@ -16,6 +16,7 @@ import { popToast } from '../../components/feedback';
 
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { isValidUrl } from '../../helpers/helpers';
 
 const loggedEmptyCategoryKeys = new Set();
 
@@ -243,7 +244,11 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      }
 
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
-     const imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
+     let imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
+
+     if (type === 'Event' || _.includes(type, '_event')) {
+          imageUrl = isValidUrl(record.image) ? record.image : (library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type);
+     }
 
      let isNew = false;
      if (typeof record.isNew !== 'undefined') {
@@ -375,21 +380,17 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
      }
 
      return (
-         <ButtonGroup vertical space="sm" pb="$2">
-                {subCategories.map((subCategory, index) => (
-                     <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()}
-                             bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['500'] : theme['tokens']['colors']['primary']['200'] }
-                             variant="solid"
-                             sx={{ paddingHorizontal: 12, height: 34 }}
-                             onPress={() => onSelect(index)}>
-                          <ButtonText fontWeight="$medium" color="$warmGray800" >
-                               {subCategory.label}
-                          </ButtonText>
-                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color="$warmGray800" ml="$4" />)}
-                     </Button>
-                ))}
-         </ButtonGroup>
-     )
+          <ButtonGroup vertical space="sm" pb="$2">
+               {subCategories.map((subCategory, index) => (
+                    <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()} bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['600'] : theme['tokens']['colors']['primary']['400']} variant="solid" sx={{ paddingHorizontal: 12, height: 34 }} onPress={() => onSelect(index)}>
+                         <ButtonText fontWeight="$medium" color={theme['tokens']['colors']['primary']['500-text']}>
+                              {subCategory.label}
+                         </ButtonText>
+                         {!isSystemBrowseCategory && <ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color={theme['tokens']['colors']['primary']['500-text']} ml="$4" />}
+                    </Button>
+               ))}
+          </ButtonGroup>
+     );
 }
 
 const DisplayMoreResultsButton = ({ category }) => {
