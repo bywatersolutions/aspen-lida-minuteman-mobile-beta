@@ -197,6 +197,7 @@ module.exports = () => {
                         authToken: sentryAuthToken,
                         organization: "bywater-solutions",
                         project: app['sentryProject'],
+                        url: app['sentryDsn']
                    },
               ],
               [
